@@ -122,7 +122,8 @@ def semanal_md(cfg: Config, broker: Broker, diario: Diario, hoy: date | None = N
     prompt = (
         "Eres el revisor de un agente de trading de impulso con stop dinámico (cuenta "
         f"{broker.nombre}). Datos de la semana:\n{json.dumps(datos, ensure_ascii=False, default=str)}\n\n"
-        "Escribe una revisión breve en español, en Markdown, para leer en el móvil:\n"
+        "Los importes están en dólares ($). Escribe una revisión breve en español, en Markdown, para leer "
+        "en el móvil, sin título principal (ya lo pone el sistema):\n"
         "1. Qué ha funcionado y qué no (con cifras).\n"
         "2. Comparación honesta con comprar y mantener.\n"
         "3. Como mucho 3 ajustes concretos de parámetros que propondrías, y por qué; o ninguno si es pronto.\n"

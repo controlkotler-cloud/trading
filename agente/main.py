@@ -238,7 +238,15 @@ def main(argv: list[str] | None = None) -> None:
     if args.reiniciar_simulado:
         from pathlib import Path
 
-        (Path(cfg.carpeta_datos) / "simulado.json").unlink(missing_ok=True)
+        from datetime import datetime
+
+        carpeta = Path(cfg.carpeta_datos)
+        (carpeta / "simulado.json").unlink(missing_ok=True)
+        sello = datetime.now().strftime("%Y%m%d-%H%M")
+        for nombre in ("operaciones.csv", "decisiones.jsonl"):  # se archivan, no se borran
+            if (carpeta / nombre).exists():
+                (carpeta / "archivo").mkdir(exist_ok=True)
+                (carpeta / nombre).rename(carpeta / "archivo" / f"{sello}-{nombre}")
         for clave in ("maximos", "salidas", "pico_patrimonio", "vigilancia", "parada_total", "dia", "inicio"):
             diario.estado.pop(clave, None)
         diario._guardar_estado()
