@@ -3,6 +3,7 @@
     python -m agente.main            # ciclo completo
     python -m agente.main --sin-ia   # vigilancia: solo límites y stop-loss, sin llamar a Claude
     python -m agente.main --estado   # muestra la situación y sale
+    python -m agente.main --probar-claude  # comprueba que la clave de Claude funciona
 """
 
 import argparse
@@ -50,7 +51,8 @@ def mostrar_estado(broker: Broker, diario: Diario, cfg: Config) -> None:
     print(f"Patrimonio: {broker.patrimonio():.2f} | Efectivo: {broker.efectivo():.2f}")
     for p in broker.posiciones():
         print(f"  {p.simbolo}: {p.cantidad:.4f} uds, valor {p.valor:.2f}, {p.pnl_pct:+.1f}%")
-    print(f"Operaciones últimos 7 días: {diario.operaciones_ultimos_dias()}/{cfg.max_operaciones_semana}")
+    ops = diario.operaciones_ultimos_dias(excluir_simbolo=cfg.nucleo_simbolo)
+    print(f"Operaciones del agente últimos 7 días: {ops}/{cfg.max_operaciones_semana} (el núcleo no cuenta)")
     print(f"Gasto en Claude este mes: {diario.gasto_ia_mes():.3f} $ / {cfg.max_gasto_ia_mes:.2f} $")
 
 
@@ -198,9 +200,15 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description="Agente de trading con Claude")
     ap.add_argument("--sin-ia", action="store_true", help="solo límites y stop-loss")
     ap.add_argument("--estado", action="store_true", help="muestra la situación y sale")
+    ap.add_argument("--probar-claude", action="store_true", help="comprueba la clave de Claude (coste < 0,01 $)")
     args = ap.parse_args(argv)
 
     cfg = cargar_config()
+    if args.probar_claude:
+        from agente.analista import probar_conexion
+
+        print(probar_conexion())
+        return
     if cfg.broker == "alpaca" and not cfg.alpaca_paper:
         print("⚠️  MODO DINERO REAL (Alpaca)")
     broker = crear_broker(cfg)

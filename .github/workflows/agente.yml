@@ -13,7 +13,7 @@ on:
       modo:
         description: "Qué ejecutar"
         type: choice
-        options: [completo, sin-ia, estado]
+        options: [completo, sin-ia, estado, probar-claude]
         default: completo
 
 permissions:
@@ -69,6 +69,7 @@ jobs:
           case "$MODO" in
             sin-ia) ARGS="--sin-ia" ;;
             estado) ARGS="--estado" ;;
+            probar-claude) ARGS="--probar-claude" ;;
             *)      ARGS="" ;;
           esac
           python -m agente.main $ARGS < /dev/null | tee salida.txt

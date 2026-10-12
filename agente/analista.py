@@ -88,3 +88,15 @@ class Analista:
             "4. Decisión final: comprar, vender o mantener. Si los argumentos en contra pesan igual o más, mantener."
         )
         return self._llamar(prompt, Decision, esfuerzo="high")
+
+
+def probar_conexion() -> str:
+    """Llamada mínima para comprobar que la clave de Claude funciona y hay saldo."""
+    analista = Analista()
+    r = analista.cliente.messages.create(
+        model=MODELO, max_tokens=200, output_config={"effort": "low"},
+        messages=[{"role": "user", "content": "Responde solo: OK"}],
+    )
+    texto = "".join(b.text for b in r.content if b.type == "text").strip()
+    coste = r.usage.input_tokens * PRECIO_ENTRADA + r.usage.output_tokens * PRECIO_SALIDA
+    return f"Claude responde: {texto!r} | modelo {r.model} | coste {coste:.4f} $"
