@@ -1,0 +1,2 @@
+fecha,broker,accion,simbolo,cantidad,importe,precio,resultado,orden_id,motivo
+2026-10-12T20:57:25,simulado,comprar,SPY,0.154222,120.0,778.1,,sim-4c5a5f40,núcleo: reequilibrio

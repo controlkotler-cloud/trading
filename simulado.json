@@ -1,0 +1,9 @@
+{
+  "efectivo": 80.0,
+  "posiciones": {
+    "SPY": {
+      "cantidad": 0.15422182238786789,
+      "precio_medio": 778.1
+    }
+  }
+}
