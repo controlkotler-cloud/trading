@@ -65,6 +65,23 @@ Claude **propone**; el código **decide si se puede**. La IA nunca puede saltars
 
 Cada vez que abras una Terminal nueva: `cd trading && source .venv/bin/activate`.
 
+## Probar estrategias con datos históricos (backtest)
+
+Antes de creerte una estrategia (de Instagram o de quien sea), pruébala:
+
+```bash
+python -m agente.backtest SPY QQQ           # 10 años, coste 0,1 % por operación
+python -m agente.backtest AAPL --anios 5 --coste 0.2
+```
+
+Compara varias estrategias de reglas simples (comprar y mantener, precio sobre EMA9, cruce de medias 20/50,
+tendencia sobre la media de 200 y rebote por RSI) en dos tramos: **entrenamiento** (70 % más antiguo) y
+**prueba** (30 % más reciente). Incluye costes, no mira al futuro (ejecuta al día siguiente) y una
+simulación Monte Carlo de cuánto podría caer con otra secuencia de suerte.
+
+Regla de oro: si en el tramo de **prueba** no gana a "comprar y mantener" (o no consigue algo parecido
+con mucha menos caída), no merece la pena.
+
 ## Plan por fases
 
 1. **Simulado** (2–4 semanas): `BROKER=simulado`. Ejecutarlo cada día y leer los razonamientos en `datos/decisiones.jsonl`.
@@ -79,6 +96,7 @@ Cada vez que abras una Terminal nueva: `cd trading && source .venv/bin/activate`
 | `agente/analista.py` | Las dos llamadas a Claude |
 | `agente/riesgo.py` | Los límites (lo más importante) |
 | `agente/indicadores.py` | Indicadores técnicos |
+| `agente/backtest.py` | Probador de estrategias con datos históricos |
 | `agente/diario.py` | Registro de operaciones, decisiones y gasto |
 | `agente/brokers/` | Simulado y Alpaca (se pueden añadir Kraken, IBKR…) |
 | `tests/` | Pruebas: `python -m pytest` |
