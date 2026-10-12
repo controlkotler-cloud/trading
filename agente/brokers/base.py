@@ -53,6 +53,25 @@ class Broker(ABC):
     def vender_todo(self, simbolo: str) -> str:
         """Cierra la posición entera. Devuelve el id de la orden."""
 
+    def intradia(self, simbolo: str, minutos: int = 15, dias: int = 5) -> list[Vela]:
+        """Velas intradía (por defecto de 15 minutos) de los últimos `dias`."""
+        raise NotImplementedError
+
+    def mercado_abierto(self) -> bool:
+        """Horario regular de la bolsa de EE. UU. (9:30-16:00 Nueva York, lunes a viernes).
+
+        No tiene en cuenta festivos; los brokers reales lo sobrescriben con su reloj oficial.
+        """
+        from datetime import datetime, time
+        from zoneinfo import ZoneInfo
+
+        ahora = datetime.now(ZoneInfo("America/New_York"))
+        return ahora.weekday() < 5 and time(9, 30) <= ahora.time() < time(16, 0)
+
+    def poner_stop(self, simbolo: str, cantidad: float, precio_stop: float) -> str:
+        """Deja (o mueve) una orden stop de venta en el broker. Por defecto no hace nada."""
+        return ""
+
     def proteger(self, posiciones: list[Posicion], stop_pct: float) -> list[str]:
         """Deja órdenes stop-loss puestas en el propio broker para la próxima sesión.
 

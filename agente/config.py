@@ -23,6 +23,20 @@ class Config:
     nucleo_simbolo: str = ""
     nucleo_pct: float = 0.6
     capital_simulado: float = 200.0
+    # --- modo momentum (operar activamente durante la sesión) ---
+    modo: str = "momentum"  # "momentum" (activo) o "conservador" (una decisión al día)
+    universo: tuple[str, ...] = field(default=("NVDA", "TSLA", "AMD", "META", "AMZN", "AAPL", "MSFT", "GOOGL",
+                                               "NFLX", "AVGO", "PLTR", "COIN", "QQQ", "SPY"))
+    vigilar_max: int = 6
+    max_posiciones: int = 3
+    pct_por_posicion: float = 0.33
+    trailing_pct: float = 3.0
+    barras_ruptura: int = 20
+    minutos_vela: int = 15
+    volumen_minimo: float = 1.5
+    max_perdida_diaria_pct: float = 8.0
+    parada_drawdown_pct: float = 40.0
+    espera_reentrada_min: int = 60
     alpaca_paper: bool = True
     carpeta_datos: str = "datos"
 
@@ -34,7 +48,7 @@ def cargar_config() -> Config:
     def num(nombre: str, defecto: float) -> float:
         return float(env.get(nombre) or defecto)
 
-    simbolos = env.get("SIMBOLOS_PERMITIDOS", "SPY,QQQ,VTI")
+    simbolos = env.get("SIMBOLOS_PERMITIDOS") or "SPY,QQQ,VTI"
     return Config(
         broker=env.get("BROKER", "simulado").strip().lower(),
         max_por_operacion=num("MAX_POR_OPERACION", 50),
@@ -51,6 +65,18 @@ def cargar_config() -> Config:
         nucleo_simbolo=env.get("NUCLEO_SIMBOLO", "").strip().upper(),
         nucleo_pct=num("NUCLEO_PCT", 0.6),
         capital_simulado=num("CAPITAL_SIMULADO", 200),
+        modo=env.get("MODO", "momentum").strip().lower(),
+        universo=tuple(x.strip().upper() for x in (env.get("UNIVERSO") or ",".join(Config.universo)).split(",") if x.strip()),
+        vigilar_max=int(num("VIGILAR_MAX", 6)),
+        max_posiciones=int(num("MAX_POSICIONES", 3)),
+        pct_por_posicion=num("PCT_POR_POSICION", 0.33),
+        trailing_pct=num("TRAILING_PCT", 3),
+        barras_ruptura=int(num("BARRAS_RUPTURA", 20)),
+        minutos_vela=int(num("MINUTOS_VELA", 15)),
+        volumen_minimo=num("VOLUMEN_MINIMO", 1.5),
+        max_perdida_diaria_pct=num("MAX_PERDIDA_DIARIA_PCT", 8),
+        parada_drawdown_pct=num("PARADA_DRAWDOWN_PCT", 40),
+        espera_reentrada_min=int(num("ESPERA_REENTRADA_MIN", 60)),
         alpaca_paper=env.get("ALPACA_PAPER", "true").lower() != "false",
         carpeta_datos=env.get("CARPETA_DATOS", "datos"),
     )

@@ -1,5 +1,12 @@
-"""Ejecución del agente. Pensado para lanzarse una vez al día (a mano o programado).
+"""Ejecución del agente.
 
+Modo momentum (MODO=momentum, por defecto): operar activamente durante la sesión.
+    python -m agente.main --seleccionar   # antes de la apertura: valores a vigilar hoy (Claude)
+    python -m agente.main --operar        # una pasada: stops dinámicos y entradas
+    python -m agente.main --bucle         # pasadas continuas (Mac encendido o servidor)
+    python -m agente.main --reactivar     # quita la parada total tras revisarla
+
+Modo conservador (MODO=conservador): una decisión al día.
     python -m agente.main            # ciclo completo
     python -m agente.main --sin-ia   # vigilancia: solo límites y stop-loss, sin llamar a Claude
     python -m agente.main --estado   # muestra la situación y sale
@@ -52,7 +59,17 @@ def mostrar_estado(broker: Broker, diario: Diario, cfg: Config) -> None:
     for p in broker.posiciones():
         print(f"  {p.simbolo}: {p.cantidad:.4f} uds, valor {p.valor:.2f}, {p.pnl_pct:+.1f}%")
     ops = diario.operaciones_ultimos_dias(excluir_simbolo=cfg.nucleo_simbolo)
-    print(f"Operaciones del agente últimos 7 días: {ops}/{cfg.max_operaciones_semana} (el núcleo no cuenta)")
+    if cfg.modo == "momentum":
+        cerradas = [o for o in diario.operaciones() if o["accion"] == "vender" and o.get("resultado")]
+        ganadoras = sum(1 for o in cerradas if float(o["resultado"]) > 0)
+        total = sum(float(o["resultado"]) for o in cerradas)
+        print(f"Modo momentum | operaciones últimos 7 días: {ops} | cerradas: {len(cerradas)} "
+              f"(ganadoras {ganadoras}) | resultado acumulado {total:+.2f}")
+        print(f"Vigilando hoy: {', '.join(diario.vigilancia()) or '-'}")
+        if diario.parada_total():
+            print(f"PARADA TOTAL: {diario.parada_total()}")
+    else:
+        print(f"Operaciones del agente últimos 7 días: {ops}/{cfg.max_operaciones_semana} (el núcleo no cuenta)")
     print(f"Gasto en Claude este mes: {diario.gasto_ia_mes():.3f} $ / {cfg.max_gasto_ia_mes:.2f} $")
 
 
@@ -201,6 +218,12 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--sin-ia", action="store_true", help="solo límites y stop-loss")
     ap.add_argument("--estado", action="store_true", help="muestra la situación y sale")
     ap.add_argument("--probar-claude", action="store_true", help="comprueba la clave de Claude (coste < 0,01 $)")
+    ap.add_argument("--seleccionar", action="store_true", help="momentum: elige los valores a vigilar hoy")
+    ap.add_argument("--operar", action="store_true", help="momentum: una pasada del operador")
+    ap.add_argument("--bucle", action="store_true", help="momentum: pasadas continuas")
+    ap.add_argument("--segundos", type=int, default=60, help="segundos entre pasadas en --bucle")
+    ap.add_argument("--reactivar", action="store_true", help="quita la parada total")
+    ap.add_argument("--reiniciar-simulado", action="store_true", help="vuelve a empezar el broker simulado")
     args = ap.parse_args(argv)
 
     cfg = cargar_config()
@@ -211,12 +234,42 @@ def main(argv: list[str] | None = None) -> None:
         return
     if cfg.broker == "alpaca" and not cfg.alpaca_paper:
         print("⚠️  MODO DINERO REAL (Alpaca)")
-    broker = crear_broker(cfg)
     diario = Diario(cfg.carpeta_datos)
+    if args.reiniciar_simulado:
+        from pathlib import Path
+
+        (Path(cfg.carpeta_datos) / "simulado.json").unlink(missing_ok=True)
+        for clave in ("maximos", "salidas", "pico_patrimonio", "vigilancia", "parada_total", "dia"):
+            diario.estado.pop(clave, None)
+        diario._guardar_estado()
+        print(f"Broker simulado reiniciado con {cfg.capital_simulado:.2f}.")
+        return
+    if args.reactivar:
+        diario.estado.pop("parada_total", None)
+        diario.estado.pop("pico_patrimonio", None)
+        diario._guardar_estado()
+        print("Parada total retirada.")
+        return
+    broker = crear_broker(cfg)
     if args.estado:
         mostrar_estado(broker, diario, cfg)
         return
-    ciclo(cfg, broker, diario, usar_ia=not args.sin_ia)
+
+    if cfg.modo == "momentum":
+        from agente import operador
+
+        if args.bucle:
+            operador.bucle(cfg, crear_broker, diario, args.segundos)
+        elif args.seleccionar:
+            operador.seleccionar(cfg, broker, diario, usar_ia=not args.sin_ia)
+        else:  # --operar, --sin-ia o sin opciones: una pasada (los stops nunca usan IA)
+            operador.operar(cfg, broker, diario)
+        return
+
+    if args.seleccionar:
+        print("Modo conservador: no hay selección diaria.")
+        return
+    ciclo(cfg, broker, diario, usar_ia=not (args.sin_ia or args.operar))
 
 
 if __name__ == "__main__":

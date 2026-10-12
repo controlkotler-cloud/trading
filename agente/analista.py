@@ -46,6 +46,19 @@ class Decision(BaseModel):
     razonamiento: str
 
 
+class Seleccion(BaseModel):
+    vigilar: list[str]  # valores a vigilar hoy, del más al menos prometedor
+    evitar: list[str]   # valores del universo que hoy conviene no tocar
+    motivo: str
+
+
+SISTEMA_SELECCION = """Eres el analista matinal de un agente de trading de impulso (momentum) intradía de alto riesgo.
+El agente compra rupturas al alza con volumen y sale con un stop dinámico. Tu trabajo: elegir qué valores
+del universo vigilar hoy. Prioriza los que tienen tendencia fuerte, volatilidad suficiente para moverse
+durante el día y liquidez. Evita los que están en caída o sin dirección. No inventes datos.
+Escribe en español y breve."""
+
+
 class Analista:
     def __init__(self):
         # Si la clave de API no pertenece a un "workspace", hay que indicar cuál usar
@@ -54,11 +67,11 @@ class Analista:
         self.cliente = anthropic.Anthropic(default_headers=cabeceras)
         self.gasto_usd = 0.0
 
-    def _llamar(self, prompt: str, formato: type[BaseModel], esfuerzo: str):
+    def _llamar(self, prompt: str, formato: type[BaseModel], esfuerzo: str, sistema: str = SISTEMA):
         respuesta = self.cliente.messages.parse(
             model=MODELO,
             max_tokens=16000,
-            system=SISTEMA,
+            system=sistema,
             output_config={"effort": esfuerzo},
             output_format=formato,
             messages=[{"role": "user", "content": prompt}],
@@ -88,6 +101,14 @@ class Analista:
             "4. Decisión final: comprar, vender o mantener. Si los argumentos en contra pesan igual o más, mantener."
         )
         return self._llamar(prompt, Decision, esfuerzo="high")
+
+    def seleccionar(self, resumenes: dict[str, dict], ranking: list[str], maximo: int) -> Seleccion | None:
+        prompt = (
+            f"Indicadores diarios del universo:\n{json.dumps(resumenes, ensure_ascii=False, indent=1)}\n\n"
+            f"Ranking por impulso calculado en código: {ranking}\n\n"
+            f"Elige como mucho {maximo} valores para vigilar hoy y cuáles evitar."
+        )
+        return self._llamar(prompt, Seleccion, esfuerzo="medium", sistema=SISTEMA_SELECCION)
 
 
 def probar_conexion() -> str:

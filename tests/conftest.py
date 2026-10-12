@@ -15,9 +15,17 @@ class BrokerFalso(BrokerSimulado):
     def __init__(self, carpeta, precios: dict[str, list[float]], **kw):
         super().__init__(carpeta, **kw)
         self.precios = precios
+        self.velas_intradia: dict[str, list] = {}
+        self.abierto = True
 
     def historico(self, simbolo, dias=60):
         return velas_desde(self.precios[simbolo])[-dias:]
+
+    def intradia(self, simbolo, minutos=15, dias=5):
+        return self.velas_intradia.get(simbolo, [])
+
+    def mercado_abierto(self):
+        return self.abierto
 
 
 @pytest.fixture

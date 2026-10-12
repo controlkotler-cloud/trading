@@ -45,7 +45,27 @@ class BrokerSimulado(Broker):
             ]
         return self._cache_velas[simbolo][-dias:]
 
+    def intradia(self, simbolo: str, minutos: int = 15, dias: int = 5) -> list[Vela]:
+        clave = f"{simbolo}@{minutos}m"
+        if clave not in self._cache_velas and self.fuente_datos is not None:
+            self._cache_velas[clave] = self.fuente_datos.intradia(simbolo, minutos, dias)
+        if clave not in self._cache_velas:
+            import yfinance as yf
+
+            df = yf.Ticker(simbolo).history(period=f"{dias}d", interval=f"{minutos}m", auto_adjust=True)
+            self._cache_velas[clave] = [
+                Vela(str(idx), r.Open, r.High, r.Low, r.Close, r.Volume) for idx, r in df.iterrows()
+            ]
+        return self._cache_velas[clave]
+
     def precio(self, simbolo: str) -> float:
+        """Último precio: la última vela intradía si hay; si no, el último cierre diario."""
+        try:
+            velas = self.intradia(simbolo)
+            if velas:
+                return velas[-1].cierre
+        except Exception:
+            pass
         return self.historico(simbolo, 1)[-1].cierre
 
     def efectivo(self) -> float:

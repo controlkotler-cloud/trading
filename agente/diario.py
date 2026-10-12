@@ -84,6 +84,48 @@ class Diario:
     def compra_reciente(self, simbolo: str, dias: int = 61) -> bool:
         return any(o["simbolo"] == simbolo and o["accion"] == "comprar" for o in self._recientes(dias))
 
+    # --- estado del modo momentum ---
+    def maximo_posicion(self, simbolo: str, defecto: float) -> float:
+        return self.estado.get("maximos", {}).get(simbolo, defecto)
+
+    def guardar_maximo(self, simbolo: str, valor: float | None) -> None:
+        maximos = self.estado.setdefault("maximos", {})
+        if valor is None:
+            maximos.pop(simbolo, None)
+        else:
+            maximos[simbolo] = valor
+        self._guardar_estado()
+
+    def registrar_salida(self, simbolo: str) -> None:
+        self.estado.setdefault("salidas", {})[simbolo] = datetime.now().isoformat(timespec="seconds")
+        self._guardar_estado()
+
+    def minutos_desde_salida(self, simbolo: str) -> float | None:
+        t = self.estado.get("salidas", {}).get(simbolo)
+        return None if t is None else (datetime.now() - datetime.fromisoformat(t)).total_seconds() / 60
+
+    def pico_patrimonio(self, patrimonio: float) -> float:
+        pico = max(self.estado.get("pico_patrimonio", patrimonio), patrimonio)
+        if pico != self.estado.get("pico_patrimonio"):
+            self.estado["pico_patrimonio"] = pico
+            self._guardar_estado()
+        return pico
+
+    def vigilancia(self) -> list[str]:
+        v = self.estado.get("vigilancia", {})
+        return v.get("simbolos", []) if v.get("dia") == date.today().isoformat() else []
+
+    def guardar_vigilancia(self, simbolos: list[str], motivo: str) -> None:
+        self.estado["vigilancia"] = {"dia": date.today().isoformat(), "simbolos": simbolos, "motivo": motivo}
+        self._guardar_estado()
+
+    def parada_total(self) -> str | None:
+        return self.estado.get("parada_total")
+
+    def activar_parada_total(self, motivo: str) -> None:
+        self.estado["parada_total"] = motivo
+        self._guardar_estado()
+
     # --- decisiones ---
     def registrar_decision(self, datos: dict) -> None:
         datos = {"fecha": datetime.now().isoformat(timespec="seconds"), **datos}

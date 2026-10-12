@@ -1,20 +1,23 @@
-# - Ciclo completo (con Claude) cada día laborable tras el cierre de la bolsa de EE. UU.
-# - Vigilancia (sin Claude, gratis) cada 30 minutos durante la sesión: stop-loss y límites.
+# Modo momentum (por defecto):
+# - Selección de valores a vigilar antes de la apertura (con Claude, una consulta al día).
+# - Operador cada 10 minutos durante la sesión de EE. UU.: stops dinámicos y entradas (sin IA, coste 0).
+# - Pasada nocturna tras el cierre (estado y stops).
 # El diario (carpeta datos/) se guarda en la rama "datos" del repositorio.
 name: Agente diario
 
 on:
   schedule:
-    - cron: "40 21 * * 1-5"     # ciclo completo: 21:40 UTC, lunes a viernes
-    - cron: "*/30 13-20 * * 1-5" # vigilancia: cada 30 min de 13:00 a 20:30 UTC (cubre la sesión en verano e invierno)
+    - cron: "15 13 * * 1-5"       # selección: 13:15 UTC (antes de la apertura en verano e invierno)
+    - cron: "*/10 13-20 * * 1-5"  # operador: cada 10 min de 13:00 a 20:50 UTC (cubre la sesión todo el año)
+    - cron: "40 21 * * 1-5"       # pasada nocturna: 21:40 UTC
     # Nota: GitHub puede retrasar o saltarse alguna ejecución programada si está saturado.
   workflow_dispatch:          # botón "Run workflow" para lanzarlo a mano (también desde el móvil)
     inputs:
       modo:
         description: "Qué ejecutar"
         type: choice
-        options: [completo, sin-ia, estado, probar-claude]
-        default: completo
+        options: [operar, seleccionar, estado, backtest-momentum, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
+        default: operar
 
 permissions:
   contents: write  # para guardar el diario en la rama "datos"
@@ -37,9 +40,15 @@ jobs:
       # Sin nadie al teclado: si CONFIRMAR_ORDENES es true, las órdenes se proponen pero NO se ejecutan
       CONFIRMAR_ORDENES: ${{ vars.CONFIRMAR_ORDENES || 'false' }}
       MAX_GASTO_IA_MES: ${{ vars.MAX_GASTO_IA_MES || '2' }}
-      NUCLEO_SIMBOLO: ${{ vars.NUCLEO_SIMBOLO || 'SPY' }}
+      NUCLEO_SIMBOLO: ${{ vars.NUCLEO_SIMBOLO }}
       NUCLEO_PCT: ${{ vars.NUCLEO_PCT || '0.6' }}
       SIMBOLOS_PERMITIDOS: ${{ vars.SIMBOLOS_PERMITIDOS || 'QQQ,VTI,AAPL,MSFT' }}
+      MODO: ${{ vars.MODO || 'momentum' }}
+      UNIVERSO: ${{ vars.UNIVERSO }}
+      TRAILING_PCT: ${{ vars.TRAILING_PCT || '3' }}
+      MAX_POSICIONES: ${{ vars.MAX_POSICIONES || '3' }}
+      PCT_POR_POSICION: ${{ vars.PCT_POR_POSICION || '0.33' }}
+      CAPITAL_SIMULADO: ${{ vars.CAPITAL_SIMULADO || '200' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -64,15 +73,23 @@ jobs:
       - name: Ejecutar el agente
         run: |
           set -o pipefail  # si el agente falla, la ejecución sale en rojo (y GitHub avisa por email)
-          MODO="${{ inputs.modo || 'completo' }}"
-          if [ "${{ github.event.schedule }}" = "*/30 13-20 * * 1-5" ]; then MODO="sin-ia"; fi
-          case "$MODO" in
-            sin-ia) ARGS="--sin-ia" ;;
-            estado) ARGS="--estado" ;;
-            probar-claude) ARGS="--probar-claude" ;;
-            *)      ARGS="" ;;
+          ACCION="${{ inputs.modo || 'completo' }}"
+          case "${{ github.event.schedule }}" in
+            "15 13 * * 1-5")      ACCION="seleccionar" ;;
+            "*/10 13-20 * * 1-5") ACCION="operar" ;;
           esac
-          python -m agente.main $ARGS < /dev/null | tee salida.txt
+          case "$ACCION" in
+            sin-ia) CMD="agente.main --sin-ia" ;;
+            operar) CMD="agente.main --operar" ;;
+            seleccionar) CMD="agente.main --seleccionar" ;;
+            estado) CMD="agente.main --estado" ;;
+            probar-claude) CMD="agente.main --probar-claude" ;;
+            reiniciar-simulado) CMD="agente.main --reiniciar-simulado" ;;
+            reactivar) CMD="agente.main --reactivar" ;;
+            backtest-momentum) CMD="agente.backtest_momentum" ;;
+            *) CMD="agente.main" ;;
+          esac
+          python -m $CMD < /dev/null | tee salida.txt
           echo "" >> salida.txt
           python -m agente.main --estado < /dev/null >> salida.txt
           { echo '### Resultado del agente'; echo '```'; cat salida.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"

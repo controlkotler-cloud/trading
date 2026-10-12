@@ -1,9 +1,47 @@
 # Agente de trading con Claude
 
-Agente personal que analiza el mercado una vez al día con Claude, propone operaciones
-y **solo las ejecuta si pasan unos límites de riesgo fijos en el código**.
+Dos modos (variable `MODO`):
 
-Objetivo de esta fase: **aprender con poco dinero (≈200)**, no hacerse rico.
+- **`momentum`** (por defecto): opera activamente durante la sesión de EE. UU. como lo haría un trader
+  pendiente de la pantalla. Compra rupturas al alza con volumen, sube el stop conforme sube el precio
+  (stop dinámico), vende cuando se gira y reinvierte las ganancias. Alto riesgo.
+- **`conservador`**: una decisión al día con Claude, límites estrictos (descrito más abajo).
+
+## Modo momentum
+
+```
+13:15 UTC    Selección: ranking de impulso del UNIVERSO y Claude elige hasta 6 valores a vigilar (1 consulta/día)
+Cada 10 min  Operador (sin IA, coste 0):
+             1. Seguridad: si cae PARADA_DRAWDOWN_PCT desde el máximo -> vende todo y se para
+                           si hoy pierde MAX_PERDIDA_DIARIA_PCT -> no abre más hoy
+             2. Stop dinámico: guarda el máximo de cada posición y vende si cae TRAILING_PCT desde él;
+                el stop se deja también puesto en el broker para que actúe entre pasadas
+             3. Entradas: rompe el máximo de 20 velas de 15 min, sobre su media y con volumen x1,5
+                -> compra PCT_POR_POSICION del patrimonio actual (interés compuesto)
+```
+
+Pruébalo antes con datos reales de los últimos 60 días:
+
+```bash
+python -m agente.backtest_momentum                  # universo por defecto
+python -m agente.backtest_momentum NVDA TSLA AMD --trailing 4
+```
+
+(o en GitHub: Actions → Agente diario → Run workflow → `backtest-momentum`).
+
+Para operar de verdad de forma continua (cada minuto) en un Mac encendido o un servidor:
+`python -m agente.main --bucle`. GitHub Actions lo hace cada 10 minutos, gratis pero con algún retraso.
+
+Notas: la normativa de EE. UU. que exigía 25.000 $ para hacer day trading se eliminó en 2026.
+En este modo la regla fiscal de los 2 meses no bloquea recompras: las pérdidas no se pierden, se
+difieren (el informe fiscal las marca). Antes de fin de año conviene revisarlo.
+
+---
+
+## Modo conservador
+
+Agente que analiza el mercado una vez al día con Claude, propone operaciones
+y **solo las ejecuta si pasan unos límites de riesgo fijos en el código**.
 
 ## Cómo funciona
 
@@ -134,9 +172,13 @@ Configuración (una sola vez), en GitHub → repositorio → **Settings → Secr
 | `BROKER` | `simulado` | `alpaca` para operar en Alpaca |
 | `ALPACA_PAPER` | `true` | `false` = dinero real |
 | `CONFIRMAR_ORDENES` | `false` | `true` = solo propone, no ejecuta (no hay nadie para confirmar) |
+| `MODO` | `momentum` | `momentum` o `conservador` |
+| `UNIVERSO` | 14 valores tecnológicos y ETFs | valores entre los que elige |
+| `TRAILING_PCT` / `MAX_POSICIONES` / `PCT_POR_POSICION` | `3` / `3` / `0.33` | stop dinámico y tamaño |
+| `CAPITAL_SIMULADO` | `200` | dinero ficticio inicial |
 | `MAX_GASTO_IA_MES` | `2` | tope de gasto en Claude, en dólares |
 | `SIMBOLOS_PERMITIDOS` | `QQQ,VTI,AAPL,MSFT` | valores que puede operar |
-| `NUCLEO_SIMBOLO` / `NUCLEO_PCT` | `SPY` / `0.6` | núcleo que no se vende |
+| `NUCLEO_SIMBOLO` / `NUCLEO_PCT` | (vacío) / `0.6` | modo conservador: núcleo que no se vende |
 | `ANTHROPIC_WORKSPACE_ID` | (vacío) | solo si tu clave de Claude no pertenece a un workspace |
 
 Para lanzarlo a mano: pestaña **Actions → Agente diario → Run workflow** (también desde la app de GitHub
@@ -153,7 +195,10 @@ por email si falla.
 
 | Archivo | Qué hace |
 |---|---|
-| `agente/main.py` | El ciclo diario |
+| `agente/main.py` | Punto de entrada y ciclo del modo conservador |
+| `agente/operador.py` | Modo momentum: selección, stops dinámicos y entradas |
+| `agente/momentum.py` | Reglas de la estrategia de impulso |
+| `agente/backtest_momentum.py` | Backtest intradía de la estrategia de impulso |
 | `agente/analista.py` | La llamada a Claude (comité de inversión) |
 | `agente/disparadores.py` | Reglas gratuitas que deciden si consultar a Claude |
 | `agente/fiscal.py` | Informe fiscal estimado (FIFO, euros, regla de 2 meses) |

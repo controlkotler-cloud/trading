@@ -50,6 +50,32 @@ class BrokerAlpaca(Broker):
         ]
         return velas[-dias:]
 
+    def intradia(self, simbolo: str, minutos: int = 15, dias: int = 5) -> list[Vela]:
+        from alpaca.data.enums import DataFeed
+        from alpaca.data.requests import StockBarsRequest
+        from alpaca.data.timeframe import TimeFrame, TimeFrameUnit
+
+        inicio = datetime.now(timezone.utc) - timedelta(days=dias + 3)
+        req = StockBarsRequest(symbol_or_symbols=simbolo, timeframe=TimeFrame(minutos, TimeFrameUnit.Minute),
+                               start=inicio, feed=DataFeed.IEX)  # IEX: datos en tiempo real del plan gratuito
+        barras = self.datos.get_stock_bars(req).data.get(simbolo, [])
+        return [Vela(str(b.timestamp), b.open, b.high, b.low, b.close, b.volume) for b in barras]
+
+    def mercado_abierto(self) -> bool:
+        return bool(self.trading.get_clock().is_open)  # reloj oficial: tiene en cuenta festivos
+
+    def poner_stop(self, simbolo: str, cantidad: float, precio_stop: float) -> str:
+        """Sustituye la orden stop pendiente del valor por una nueva (el stop solo sube)."""
+        from alpaca.trading.enums import OrderSide, TimeInForce
+        from alpaca.trading.requests import StopOrderRequest
+
+        self._cancelar_ordenes(simbolo)
+        orden = self.trading.submit_order(StopOrderRequest(
+            symbol=simbolo, qty=cantidad, side=OrderSide.SELL,
+            stop_price=round(precio_stop, 2), time_in_force=TimeInForce.DAY,
+        ))
+        return str(orden.id)
+
     def comprar(self, simbolo: str, importe: float, precio_limite: float | None = None) -> str:
         from alpaca.trading.enums import OrderSide, TimeInForce
         from alpaca.trading.requests import LimitOrderRequest, MarketOrderRequest
