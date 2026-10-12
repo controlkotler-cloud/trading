@@ -19,3 +19,10 @@ def test_resumen_tendencia_alcista():
 def test_resumen_pocos_datos():
     with pytest.raises(ValueError):
         resumir("SPY", velas_desde([100] * 10))
+
+
+def test_ruptura_maximos_solo_el_primer_dia():
+    base = [100.0] * 60
+    assert resumir("SPY", velas_desde(base + [105])).ruptura_maximos
+    assert not resumir("SPY", velas_desde(base + [105, 106])).ruptura_maximos
+    assert not resumir("SPY", velas_desde(base + [99])).ruptura_maximos

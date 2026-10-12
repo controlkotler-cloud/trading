@@ -40,8 +40,9 @@ def detectar(resumenes: dict[str, dict], posiciones: list[dict], excluir: tuple[
         if abs(r["cambio_5d_pct"]) >= max(5.0, 2.5 * r["volatilidad_20d_pct"]):
             motivos.append(f"movimiento fuerte en 5 días ({r['cambio_5d_pct']:+.1f}%)")
             prioridad = max(prioridad, 2)
-        if r["precio"] >= r["maximo_60d"] * 0.995 and r.get("media_50") and r["precio"] > r["media_50"]:
-            motivos.append("en máximos de 60 días con tendencia alcista")
+        if r.get("ruptura_maximos") and r.get("media_50") and r["precio"] > r["media_50"] and s not in pos:
+            # solo el día de la ruptura: si no, en mercados alcistas avisaría a diario y gastaría en IA
+            motivos.append("rompe máximos de 60 días con tendencia alcista")
             prioridad = max(prioridad, 1)
         if motivos:
             disparos.append(Disparo(s, "; ".join(motivos), prioridad))

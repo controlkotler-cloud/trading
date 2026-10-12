@@ -137,6 +137,7 @@ Configuración (una sola vez), en GitHub → repositorio → **Settings → Secr
 | `MAX_GASTO_IA_MES` | `2` | tope de gasto en Claude, en dólares |
 | `SIMBOLOS_PERMITIDOS` | `QQQ,VTI,AAPL,MSFT` | valores que puede operar |
 | `NUCLEO_SIMBOLO` / `NUCLEO_PCT` | `SPY` / `0.6` | núcleo que no se vende |
+| `ANTHROPIC_WORKSPACE_ID` | (vacío) | solo si tu clave de Claude no pertenece a un workspace |
 
 Para lanzarlo a mano: pestaña **Actions → Agente diario → Run workflow** (también desde la app de GitHub
 en el móvil). El resultado de cada ejecución aparece en el resumen de la ejecución, y GitHub te avisa

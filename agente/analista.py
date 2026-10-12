@@ -7,6 +7,7 @@ Claude solo PROPONE. Los límites de riesgo, costes e impuestos los aplica riesg
 """
 
 import json
+import os
 from typing import Literal
 
 import anthropic
@@ -47,7 +48,10 @@ class Decision(BaseModel):
 
 class Analista:
     def __init__(self):
-        self.cliente = anthropic.Anthropic()
+        # Si la clave de API no pertenece a un "workspace", hay que indicar cuál usar
+        workspace = os.environ.get("ANTHROPIC_WORKSPACE_ID")
+        cabeceras = {"anthropic-workspace-id": workspace} if workspace else None
+        self.cliente = anthropic.Anthropic(default_headers=cabeceras)
         self.gasto_usd = 0.0
 
     def _llamar(self, prompt: str, formato: type[BaseModel], esfuerzo: str):

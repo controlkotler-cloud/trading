@@ -29,6 +29,7 @@ jobs:
     timeout-minutes: 15
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
       ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
       ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
       BROKER: ${{ vars.BROKER || 'simulado' }}
@@ -40,9 +41,9 @@ jobs:
       NUCLEO_PCT: ${{ vars.NUCLEO_PCT || '0.6' }}
       SIMBOLOS_PERMITIDOS: ${{ vars.SIMBOLOS_PERMITIDOS || 'QQQ,VTI,AAPL,MSFT' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -62,6 +63,7 @@ jobs:
 
       - name: Ejecutar el agente
         run: |
+          set -o pipefail  # si el agente falla, la ejecución sale en rojo (y GitHub avisa por email)
           MODO="${{ inputs.modo || 'completo' }}"
           if [ "${{ github.event.schedule }}" = "*/30 13-20 * * 1-5" ]; then MODO="sin-ia"; fi
           case "$MODO" in

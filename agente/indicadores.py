@@ -20,6 +20,7 @@ class Resumen:
     volatilidad_20d_pct: float
     maximo_60d: float
     minimo_60d: float
+    ruptura_maximos: bool  # hoy cierra por encima del máximo de cierre de los 60 días anteriores (y ayer no)
 
     def como_dict(self) -> dict:
         return {k: round(v, 2) if isinstance(v, float) else v for k, v in asdict(self).items()}
@@ -71,4 +72,5 @@ def resumir(simbolo: str, velas: list[Vela]) -> Resumen:
         volatilidad_20d_pct=volatilidad(cierres[-21:]),
         maximo_60d=max(v.maximo for v in velas[-60:]),
         minimo_60d=min(v.minimo for v in velas[-60:]),
+        ruptura_maximos=precio > max(cierres[-61:-1]) and cierres[-2] <= max(cierres[-62:-2]),
     )
