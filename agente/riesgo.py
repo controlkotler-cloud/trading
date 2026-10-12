@@ -29,12 +29,29 @@ def parada_general(patrimonio: float, patrimonio_inicio_dia: float, cfg: Config)
 
 def posiciones_a_cerrar_por_stop(posiciones: list[Posicion], cfg: Config) -> list[Posicion]:
     """Posiciones que han caído más que el stop-loss: se venden sin consultar a la IA."""
-    return [p for p in posiciones if p.pnl_pct <= -cfg.stop_loss_pct]
+    return [p for p in posiciones if p.pnl_pct <= -cfg.stop_loss_pct and p.simbolo != cfg.nucleo_simbolo]
+
+
+def compra_nucleo(patrimonio: float, valor_nucleo: float, efectivo: float, cfg: Config) -> float:
+    """Importe a comprar del núcleo para acercarlo a su peso objetivo (0 si no hace falta).
+
+    Solo compra (nunca vende, así no genera impuestos) y solo si se ha desviado más de un 10 %,
+    para no gastar en operaciones pequeñas.
+    """
+    if not cfg.nucleo_simbolo:
+        return 0.0
+    objetivo = cfg.nucleo_pct * patrimonio
+    if valor_nucleo >= objetivo * 0.9:
+        return 0.0
+    importe = min(objetivo - valor_nucleo, efectivo)
+    return round(importe, 2) if importe >= 5 else 0.0
 
 
 def validar_compra(simbolo: str, importe: float, efectivo: float, operaciones_semana: int,
                    posiciones: list[Posicion], cfg: Config) -> Veredicto:
     simbolo = simbolo.upper()
+    if simbolo == cfg.nucleo_simbolo:
+        return Veredicto(False, f"{simbolo} es el núcleo: lo gestiona el reequilibrio, no el agente")
     if simbolo not in cfg.simbolos_permitidos:
         return Veredicto(False, f"{simbolo} no está en la lista de valores permitidos")
     if operaciones_semana >= cfg.max_operaciones_semana:
@@ -48,7 +65,19 @@ def validar_compra(simbolo: str, importe: float, efectivo: float, operaciones_se
     return Veredicto(True, "ok", round(importe, 2))
 
 
+def validar_ventaja(rentabilidad_esperada_pct: float, confianza: int, cfg: Config) -> Veredicto:
+    """Filtro de costes: solo se opera si lo esperado compensa costes e impuestos."""
+    if rentabilidad_esperada_pct < cfg.min_rentabilidad_pct:
+        return Veredicto(False, f"Rentabilidad esperada {rentabilidad_esperada_pct:.1f}% < mínimo {cfg.min_rentabilidad_pct:.1f}%: "
+                                "no compensa costes e impuestos")
+    if confianza < cfg.min_confianza:
+        return Veredicto(False, f"Confianza {confianza}/10 < mínimo {cfg.min_confianza}/10")
+    return Veredicto(True, "ok")
+
+
 def validar_venta(simbolo: str, posiciones: list[Posicion], operaciones_semana: int, cfg: Config) -> Veredicto:
+    if simbolo.upper() == cfg.nucleo_simbolo:
+        return Veredicto(False, f"{simbolo} es el núcleo: no se vende (así se aplazan los impuestos)")
     if not any(p.simbolo == simbolo.upper() for p in posiciones):
         return Veredicto(False, f"No hay posición abierta en {simbolo}")
     if operaciones_semana >= cfg.max_operaciones_semana:

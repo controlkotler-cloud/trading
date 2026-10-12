@@ -8,30 +8,47 @@ Objetivo de esta fase: **aprender con poco dinero (≈200)**, no hacerse rico.
 ## Cómo funciona
 
 ```
-1. Stop-loss    → si una posición cae más de STOP_LOSS_PCT, se vende (sin IA)
-2. Paradas      → si el patrimonio < CAPITAL_MINIMO o se pierde MAX_PERDIDA_DIARIA hoy, no opera
-3. Indicadores  → precio, medias 20/50, RSI, volatilidad… (calculados en código, gratis y exactos)
-4. Claude #1    → cribado rápido de todos los valores: elige como mucho 1 candidato
-5. Claude #2    → "comité": argumentos a favor, en contra, riesgo y decisión final
-6. Límites      → el código recorta o bloquea lo que se pase de tus límites
-7. Orden        → orden limitada (no paga más de un 0,3 % sobre el último cierre); te pregunta antes
-8. Diario       → todo queda en datos/ (operaciones, razonamientos, coste de la IA)
+1. Stop-loss     → si una posición cae más de STOP_LOSS_PCT, se vende (sin IA)
+2. Paradas       → si el patrimonio < CAPITAL_MINIMO o se pierde MAX_PERDIDA_DIARIA hoy, no opera
+3. Núcleo        → mantiene NUCLEO_PCT del patrimonio en un índice amplio (solo compra, nunca vende)
+4. Indicadores   → precio, medias, RSI, volatilidad… (calculados en código, gratis)
+5. Disparadores  → reglas gratuitas: ¿pasa algo hoy? Si no, NO se llama a Claude (coste 0)
+6. Claude        → "comité" sobre el valor con aviso: a favor, en contra, riesgo, rentabilidad esperada
+7. Filtros       → riesgo + costes (rentabilidad y confianza mínimas) + impuestos (regla de los 2 meses)
+8. Orden         → orden limitada (no paga más de un 0,3 % sobre el último cierre)
+9. Diario        → operaciones con resultado, razonamientos y coste de la IA en datos/
 ```
 
 Claude **propone**; el código **decide si se puede**. La IA nunca puede saltarse un límite.
 
-## Límites por defecto (editables en `.env`)
+## Optimización de costes e impuestos
 
-| Límite | Valor |
+Con poco capital, lo que más pesa no son las comisiones del broker sino **el coste de la IA y el número
+de operaciones**. El agente está diseñado para minimizar ambos:
+
+| Palanca | Cómo se aplica |
 |---|---|
-| Máximo por operación (y por valor) | 50 |
-| Pérdida máxima en un día | 10 |
-| Parada total si el patrimonio baja de | 150 |
-| Operaciones máximas en 7 días | 5 |
-| Stop-loss por posición | -8 % |
-| Gasto máximo en Claude al mes | 5 $ |
-| Valores permitidos | SPY, QQQ, VTI, AAPL, MSFT |
-| Confirmar cada orden | sí |
+| **Coste de la IA** | Claude solo se consulta los días con avisos (disparadores gratuitos), una sola llamada. Tope mensual `MAX_GASTO_IA_MES` (2 $ por defecto). |
+| **Operar solo si compensa** | Claude debe estimar una rentabilidad ≥ `MIN_RENTABILIDAD_PCT` (2 %) y confianza ≥ `MIN_CONFIANZA` (6/10); si no, no se opera. |
+| **Diferencia de precio** | Órdenes limitadas y valores muy líquidos. |
+| **Núcleo-satélite** | `NUCLEO_PCT` (60 %) en un índice amplio que **nunca se vende**: casi sin costes y sin impuestos hasta que vendas (aplazar impuestos es rentabilidad). El 40 % restante es el que mueve el agente. |
+| **Regla de los 2 meses** | No recompra un valor vendido con pérdidas en 61 días, para que la pérdida se pueda compensar en la renta. |
+| **Vender ganadoras** | Claude sabe que vender con ganancia genera el 19 % de impuesto y solo lo propone con motivo claro. |
+
+### Informe fiscal
+
+```bash
+python -m agente.fiscal 2026
+```
+
+Calcula ganancias y pérdidas **en euros** (con el tipo de cambio de cada fecha), emparejando compras y
+ventas por **FIFO** como exige Hacienda, marca las pérdidas **diferidas** por la regla de los 2 meses y
+estima el impuesto con los tramos del ahorro (19 % hasta 6.000 €). Es una estimación: para la
+declaración usa los datos oficiales del broker.
+
+**Ojo con los ETF de EE. UU. (SPY, QQQ, VTI):** la normativa europea (PRIIPs) suele impedir que los
+particulares de la UE los compren. Si tu cuenta real no lo permite, usa para el núcleo un ETF europeo
+equivalente que ofrezca el broker, o acciones (las acciones no están afectadas).
 
 ## Brokers
 
@@ -117,8 +134,9 @@ Configuración (una sola vez), en GitHub → repositorio → **Settings → Secr
 | `BROKER` | `simulado` | `alpaca` para operar en Alpaca |
 | `ALPACA_PAPER` | `true` | `false` = dinero real |
 | `CONFIRMAR_ORDENES` | `false` | `true` = solo propone, no ejecuta (no hay nadie para confirmar) |
-| `MAX_GASTO_IA_MES` | `5` | tope de gasto en Claude, en dólares |
-| `SIMBOLOS_PERMITIDOS` | `SPY,QQQ,VTI,AAPL,MSFT` | valores que puede operar |
+| `MAX_GASTO_IA_MES` | `2` | tope de gasto en Claude, en dólares |
+| `SIMBOLOS_PERMITIDOS` | `QQQ,VTI,AAPL,MSFT` | valores que puede operar |
+| `NUCLEO_SIMBOLO` / `NUCLEO_PCT` | `SPY` / `0.6` | núcleo que no se vende |
 
 Para lanzarlo a mano: pestaña **Actions → Agente diario → Run workflow** (también desde la app de GitHub
 en el móvil). El resultado de cada ejecución aparece en el resumen de la ejecución, y GitHub te avisa
@@ -135,7 +153,9 @@ por email si falla.
 | Archivo | Qué hace |
 |---|---|
 | `agente/main.py` | El ciclo diario |
-| `agente/analista.py` | Las dos llamadas a Claude |
+| `agente/analista.py` | La llamada a Claude (comité de inversión) |
+| `agente/disparadores.py` | Reglas gratuitas que deciden si consultar a Claude |
+| `agente/fiscal.py` | Informe fiscal estimado (FIFO, euros, regla de 2 meses) |
 | `agente/riesgo.py` | Los límites (lo más importante) |
 | `agente/indicadores.py` | Indicadores técnicos |
 | `agente/backtest.py` | Probador de estrategias con datos históricos |

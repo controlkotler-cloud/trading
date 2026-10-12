@@ -35,8 +35,10 @@ jobs:
       ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
       # Sin nadie al teclado: si CONFIRMAR_ORDENES es true, las órdenes se proponen pero NO se ejecutan
       CONFIRMAR_ORDENES: ${{ vars.CONFIRMAR_ORDENES || 'false' }}
-      MAX_GASTO_IA_MES: ${{ vars.MAX_GASTO_IA_MES || '5' }}
-      SIMBOLOS_PERMITIDOS: ${{ vars.SIMBOLOS_PERMITIDOS || 'SPY,QQQ,VTI,AAPL,MSFT' }}
+      MAX_GASTO_IA_MES: ${{ vars.MAX_GASTO_IA_MES || '2' }}
+      NUCLEO_SIMBOLO: ${{ vars.NUCLEO_SIMBOLO || 'SPY' }}
+      NUCLEO_PCT: ${{ vars.NUCLEO_PCT || '0.6' }}
+      SIMBOLOS_PERMITIDOS: ${{ vars.SIMBOLOS_PERMITIDOS || 'QQQ,VTI,AAPL,MSFT' }}
     steps:
       - uses: actions/checkout@v4
 

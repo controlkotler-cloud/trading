@@ -10,7 +10,7 @@ import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-COLUMNAS = ["fecha", "broker", "accion", "simbolo", "importe", "precio", "orden_id", "motivo"]
+COLUMNAS = ["fecha", "broker", "accion", "simbolo", "cantidad", "importe", "precio", "resultado", "orden_id", "motivo"]
 
 
 class Diario:
@@ -48,7 +48,8 @@ class Diario:
 
     # --- operaciones ---
     def registrar_operacion(self, broker: str, accion: str, simbolo: str, importe: float,
-                            precio: float, orden_id: str, motivo: str) -> None:
+                            precio: float, orden_id: str, motivo: str, resultado: float | None = None) -> None:
+        """resultado: beneficio o pérdida estimado de una venta (vacío en compras)."""
         nuevo = not self.ruta_ops.exists()
         with self.ruta_ops.open("a", newline="") as f:
             w = csv.DictWriter(f, fieldnames=COLUMNAS)
@@ -56,8 +57,10 @@ class Diario:
                 w.writeheader()
             w.writerow({
                 "fecha": datetime.now().isoformat(timespec="seconds"), "broker": broker,
-                "accion": accion, "simbolo": simbolo, "importe": round(importe, 2),
-                "precio": round(precio, 4), "orden_id": orden_id, "motivo": motivo,
+                "accion": accion, "simbolo": simbolo, "cantidad": round(importe / precio, 6) if precio else "",
+                "importe": round(importe, 2), "precio": round(precio, 4),
+                "resultado": "" if resultado is None else round(resultado, 2),
+                "orden_id": orden_id, "motivo": motivo,
             })
 
     def operaciones(self) -> list[dict]:
@@ -66,9 +69,20 @@ class Diario:
         with self.ruta_ops.open() as f:
             return list(csv.DictReader(f))
 
-    def operaciones_ultimos_dias(self, dias: int = 7) -> int:
+    def _recientes(self, dias: int) -> list[dict]:
         limite = datetime.now() - timedelta(days=dias)
-        return sum(1 for o in self.operaciones() if datetime.fromisoformat(o["fecha"]) >= limite)
+        return [o for o in self.operaciones() if datetime.fromisoformat(o["fecha"]) >= limite]
+
+    def operaciones_ultimos_dias(self, dias: int = 7, excluir_simbolo: str = "") -> int:
+        return sum(1 for o in self._recientes(dias) if o["simbolo"] != excluir_simbolo)
+
+    def venta_con_perdida_reciente(self, simbolo: str, dias: int = 61) -> bool:
+        """¿Se vendió este valor con pérdidas en los últimos `dias`? (regla de los 2 meses)"""
+        return any(o["simbolo"] == simbolo and o["accion"] == "vender" and o.get("resultado")
+                   and float(o["resultado"]) < 0 for o in self._recientes(dias))
+
+    def compra_reciente(self, simbolo: str, dias: int = 61) -> bool:
+        return any(o["simbolo"] == simbolo and o["accion"] == "comprar" for o in self._recientes(dias))
 
     # --- decisiones ---
     def registrar_decision(self, datos: dict) -> None:

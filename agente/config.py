@@ -16,7 +16,12 @@ class Config:
     stop_loss_pct: float = 8.0
     simbolos_permitidos: tuple[str, ...] = field(default=("SPY", "QQQ", "VTI"))
     confirmar_ordenes: bool = True
-    max_gasto_ia_mes: float = 5.0
+    max_gasto_ia_mes: float = 2.0
+    min_rentabilidad_pct: float = 2.0
+    min_confianza: int = 6
+    regla_dos_meses: bool = True
+    nucleo_simbolo: str = ""
+    nucleo_pct: float = 0.6
     capital_simulado: float = 200.0
     alpaca_paper: bool = True
     carpeta_datos: str = "datos"
@@ -39,7 +44,12 @@ def cargar_config() -> Config:
         stop_loss_pct=num("STOP_LOSS_PCT", 8),
         simbolos_permitidos=tuple(s.strip().upper() for s in simbolos.split(",") if s.strip()),
         confirmar_ordenes=env.get("CONFIRMAR_ORDENES", "true").lower() != "false",
-        max_gasto_ia_mes=num("MAX_GASTO_IA_MES", 5),
+        max_gasto_ia_mes=num("MAX_GASTO_IA_MES", 2),
+        min_rentabilidad_pct=num("MIN_RENTABILIDAD_PCT", 2),
+        min_confianza=int(num("MIN_CONFIANZA", 6)),
+        regla_dos_meses=env.get("REGLA_DOS_MESES", "true").lower() != "false",
+        nucleo_simbolo=env.get("NUCLEO_SIMBOLO", "").strip().upper(),
+        nucleo_pct=num("NUCLEO_PCT", 0.6),
         capital_simulado=num("CAPITAL_SIMULADO", 200),
         alpaca_paper=env.get("ALPACA_PAPER", "true").lower() != "false",
         carpeta_datos=env.get("CARPETA_DATOS", "datos"),

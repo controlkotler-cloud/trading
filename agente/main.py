@@ -12,6 +12,7 @@ from agente import riesgo
 from agente.brokers.base import Broker
 from agente.config import Config, cargar_config
 from agente.diario import Diario
+from agente.disparadores import detectar
 from agente.indicadores import resumir
 
 
@@ -53,21 +54,28 @@ def mostrar_estado(broker: Broker, diario: Diario, cfg: Config) -> None:
     print(f"Gasto en Claude este mes: {diario.gasto_ia_mes():.3f} $ / {cfg.max_gasto_ia_mes:.2f} $")
 
 
+def _vender(broker: Broker, diario: Diario, p, motivo: str) -> str:
+    orden = broker.vender_todo(p.simbolo)
+    resultado = (p.precio_actual - p.precio_medio) * p.cantidad
+    diario.registrar_operacion(broker.nombre, "vender", p.simbolo, p.valor, p.precio_actual, orden,
+                               motivo, resultado=resultado)
+    return orden
+
+
 def ciclo(cfg: Config, broker: Broker, diario: Diario, usar_ia: bool = True) -> None:
     patrimonio = broker.patrimonio()
     inicio = diario.patrimonio_inicio_dia(patrimonio)
     print(f"Patrimonio {patrimonio:.2f} (inicio del día {inicio:.2f})")
 
-    # 1. Stop-loss: se ejecuta siempre, sin IA ni confirmación
+    # 1. Stop-loss: se ejecuta siempre, sin IA ni confirmación (el núcleo no tiene stop)
     for p in riesgo.posiciones_a_cerrar_por_stop(broker.posiciones(), cfg):
-        orden = broker.vender_todo(p.simbolo)
-        diario.registrar_operacion(broker.nombre, "vender", p.simbolo, p.valor, p.precio_actual, orden,
-                                   f"stop-loss {p.pnl_pct:.1f}%")
+        _vender(broker, diario, p, f"stop-loss {p.pnl_pct:.1f}%")
         print(f"STOP-LOSS: vendido {p.simbolo} ({p.pnl_pct:.1f}%)")
 
     # 1b. En el ciclo completo (tras el cierre), dejar stops puestos en el broker para mañana
     if usar_ia:
-        for msg in broker.proteger(broker.posiciones(), cfg.stop_loss_pct):
+        satelite = [p for p in broker.posiciones() if p.simbolo != cfg.nucleo_simbolo]
+        for msg in broker.proteger(satelite, cfg.stop_loss_pct):
             print(msg)
 
     # 2. Paradas generales
@@ -77,13 +85,28 @@ def ciclo(cfg: Config, broker: Broker, diario: Diario, usar_ia: bool = True) -> 
         return
     if not usar_ia:
         return
-    if diario.gasto_ia_mes() >= cfg.max_gasto_ia_mes:
-        print(f"Tope de gasto en IA alcanzado este mes ({diario.gasto_ia_mes():.2f} $). No se analiza.")
-        return
 
-    # 3. Indicadores
+    # 3. Núcleo: reequilibrio sin IA (solo compras, para no generar impuestos)
+    if cfg.nucleo_simbolo:
+        valor_nucleo = sum(p.valor for p in broker.posiciones() if p.simbolo == cfg.nucleo_simbolo)
+        importe = riesgo.compra_nucleo(broker.patrimonio(), valor_nucleo, broker.efectivo(), cfg)
+        if importe:
+            try:
+                precio = broker.historico(cfg.nucleo_simbolo, 5)[-1].cierre
+                limite = precio * 1.003
+                if confirmar(f"NÚCLEO: comprar {cfg.nucleo_simbolo} por {importe:.2f} (límite {limite:.2f})", cfg):
+                    orden = broker.comprar(cfg.nucleo_simbolo, importe, precio_limite=limite)
+                    diario.registrar_operacion(broker.nombre, "comprar", cfg.nucleo_simbolo, importe, precio, orden,
+                                               "núcleo: reequilibrio")
+                    print(f"Núcleo: comprado {cfg.nucleo_simbolo} por {importe:.2f}")
+            except Exception as e:
+                print(f"Aviso: no se pudo comprar el núcleo {cfg.nucleo_simbolo}: {e}")
+
+    # 4. Indicadores (gratis)
     resumenes = {}
     for s in cfg.simbolos_permitidos:
+        if s == cfg.nucleo_simbolo:
+            continue
         try:
             resumenes[s] = resumir(s, broker.historico(s, 60)).como_dict()
         except Exception as e:  # un valor sin datos no debe parar el resto
@@ -93,48 +116,68 @@ def ciclo(cfg: Config, broker: Broker, diario: Diario, usar_ia: bool = True) -> 
         return
 
     posiciones = broker.posiciones()
-    pos_dict = [{"simbolo": p.simbolo, "valor": round(p.valor, 2), "pnl_pct": round(p.pnl_pct, 2)} for p in posiciones]
+    pos_dict = [{"simbolo": p.simbolo, "valor": round(p.valor, 2), "pnl_pct": round(p.pnl_pct, 2),
+                 "nucleo": p.simbolo == cfg.nucleo_simbolo} for p in posiciones]
     efectivo = broker.efectivo()
 
-    # 4. Claude: cribado y decisión
+    # 5. Disparadores (gratis): solo se consulta a Claude si pasa algo
+    disparos = detectar(resumenes, pos_dict, excluir=(cfg.nucleo_simbolo,))
+    if not disparos:
+        print("Sin avisos hoy: no se consulta a Claude (coste 0).")
+        return
+    d = disparos[0]
+    print(f"Aviso en {d.simbolo}: {d.motivo}")
+    if diario.gasto_ia_mes() >= cfg.max_gasto_ia_mes:
+        print(f"Tope de gasto en IA alcanzado este mes ({diario.gasto_ia_mes():.2f} $). No se analiza.")
+        return
+
+    avisos_fiscales = []
+    if cfg.regla_dos_meses and diario.venta_con_perdida_reciente(d.simbolo):
+        avisos_fiscales.append(f"{d.simbolo} se vendió con pérdidas hace menos de 2 meses: recomprarlo ahora "
+                               "impediría compensar esa pérdida en la renta (no se permitirá comprar)")
+    if diario.compra_reciente(d.simbolo):
+        avisos_fiscales.append(f"{d.simbolo} se compró hace menos de 2 meses: si se vende con pérdidas, "
+                               "esa pérdida no se podrá compensar todavía en la renta")
+
+    # 6. Claude: comité de inversión sobre el valor con aviso
     from agente.analista import Analista
 
     analista = Analista()
     try:
-        cribado = analista.cribar(list(resumenes.values()), pos_dict, efectivo)
-        decision = None
-        if cribado and cribado.candidato and cribado.candidato.upper() in resumenes and cribado.accion_candidata != "ninguna":
-            decision = analista.decidir(cribado, resumenes[cribado.candidato.upper()], pos_dict,
-                                        efectivo, cfg.max_por_operacion)
+        decision = analista.decidir(d.simbolo, d.motivo, resumenes[d.simbolo], pos_dict, efectivo,
+                                    cfg.max_por_operacion, avisos_fiscales)
     finally:
         diario.sumar_gasto_ia(analista.gasto_usd)
 
     diario.registrar_decision({
-        "cribado": cribado.model_dump() if cribado else None,
+        "aviso": {"simbolo": d.simbolo, "motivo": d.motivo},
         "decision": decision.model_dump() if decision else None,
         "coste_usd": round(analista.gasto_usd, 4),
     })
     print(f"Coste de Claude en este ciclo: {analista.gasto_usd:.4f} $")
-    if cribado:
-        print(f"Cribado: {cribado.motivo}")
     if not decision or decision.accion == "mantener":
         print("Decisión: mantener." + (f" {decision.razonamiento}" if decision else ""))
         return
 
-    # 5. Validación de riesgo y ejecución
+    # 7. Validación de riesgo, costes e impuestos; ejecución
     simbolo = decision.simbolo.upper()
-    ops = diario.operaciones_ultimos_dias()
+    ops = diario.operaciones_ultimos_dias(excluir_simbolo=cfg.nucleo_simbolo)
     precio = resumenes.get(simbolo, {}).get("precio")
     if precio is None:
         print(f"Decisión descartada: {simbolo} no está entre los valores analizados")
         return
     if decision.accion == "comprar":
-        v = riesgo.validar_compra(simbolo, decision.importe, efectivo, ops, posiciones, cfg)
+        v = riesgo.validar_ventaja(decision.rentabilidad_esperada_pct, decision.confianza, cfg)
+        if v.permitido and cfg.regla_dos_meses and diario.venta_con_perdida_reciente(simbolo):
+            v = riesgo.Veredicto(False, f"Regla de los 2 meses: {simbolo} se vendió con pérdidas hace menos de 61 días")
+        if v.permitido:
+            v = riesgo.validar_compra(simbolo, decision.importe, efectivo, ops, posiciones, cfg)
         if not v.permitido:
-            print(f"Compra bloqueada por riesgo: {v.motivo}")
+            print(f"Compra bloqueada: {v.motivo}")
             return
         limite = precio * 1.003  # no pagar más de un 0,3 % sobre el último cierre
-        texto = (f"COMPRAR {simbolo} por {v.importe:.2f} (límite {limite:.2f}) | confianza {decision.confianza}/10\n"
+        texto = (f"COMPRAR {simbolo} por {v.importe:.2f} (límite {limite:.2f}) | confianza {decision.confianza}/10 | "
+                 f"esperado {decision.rentabilidad_esperada_pct:+.1f}% en {decision.horizonte_dias} días\n"
                  f"Ventaja: {decision.ventaja}\nRiesgo: {decision.riesgo_principal}")
         if confirmar(texto, cfg):
             orden = broker.comprar(simbolo, v.importe, precio_limite=limite)
@@ -143,13 +186,11 @@ def ciclo(cfg: Config, broker: Broker, diario: Diario, usar_ia: bool = True) -> 
     else:
         v = riesgo.validar_venta(simbolo, posiciones, ops, cfg)
         if not v.permitido:
-            print(f"Venta bloqueada por riesgo: {v.motivo}")
+            print(f"Venta bloqueada: {v.motivo}")
             return
         pos = next(p for p in posiciones if p.simbolo == simbolo)
         if confirmar(f"VENDER todo {simbolo} (valor {pos.valor:.2f}, {pos.pnl_pct:+.1f}%)\n{decision.razonamiento}", cfg):
-            orden = broker.vender_todo(simbolo)
-            diario.registrar_operacion(broker.nombre, "vender", simbolo, pos.valor, pos.precio_actual, orden,
-                                       decision.razonamiento[:200])
+            orden = _vender(broker, diario, pos, decision.razonamiento[:200])
             print(f"Orden enviada: {orden}")
 
 
