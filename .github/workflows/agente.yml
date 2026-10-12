@@ -1,10 +1,13 @@
-# Ejecuta el agente cada día laborable tras el cierre de la bolsa de EE. UU.
-# y guarda el diario (carpeta datos/) en la rama "datos" del repositorio.
+# - Ciclo completo (con Claude) cada día laborable tras el cierre de la bolsa de EE. UU.
+# - Vigilancia (sin Claude, gratis) cada 30 minutos durante la sesión: stop-loss y límites.
+# El diario (carpeta datos/) se guarda en la rama "datos" del repositorio.
 name: Agente diario
 
 on:
   schedule:
-    - cron: "40 21 * * 1-5"  # 21:40 UTC, lunes a viernes (GitHub puede retrasarlo unos minutos)
+    - cron: "40 21 * * 1-5"     # ciclo completo: 21:40 UTC, lunes a viernes
+    - cron: "*/30 13-20 * * 1-5" # vigilancia: cada 30 min de 13:00 a 20:30 UTC (cubre la sesión en verano e invierno)
+    # Nota: GitHub puede retrasar o saltarse alguna ejecución programada si está saturado.
   workflow_dispatch:          # botón "Run workflow" para lanzarlo a mano (también desde el móvil)
     inputs:
       modo:
@@ -58,6 +61,7 @@ jobs:
       - name: Ejecutar el agente
         run: |
           MODO="${{ inputs.modo || 'completo' }}"
+          if [ "${{ github.event.schedule }}" = "*/30 13-20 * * 1-5" ]; then MODO="sin-ia"; fi
           case "$MODO" in
             sin-ia) ARGS="--sin-ia" ;;
             estado) ARGS="--estado" ;;

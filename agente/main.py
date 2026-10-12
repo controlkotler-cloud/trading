@@ -1,7 +1,7 @@
 """Ejecución del agente. Pensado para lanzarse una vez al día (a mano o programado).
 
     python -m agente.main            # ciclo completo
-    python -m agente.main --sin-ia   # solo comprueba límites y stop-loss, sin llamar a Claude
+    python -m agente.main --sin-ia   # vigilancia: solo límites y stop-loss, sin llamar a Claude
     python -m agente.main --estado   # muestra la situación y sale
 """
 
@@ -64,6 +64,11 @@ def ciclo(cfg: Config, broker: Broker, diario: Diario, usar_ia: bool = True) -> 
         diario.registrar_operacion(broker.nombre, "vender", p.simbolo, p.valor, p.precio_actual, orden,
                                    f"stop-loss {p.pnl_pct:.1f}%")
         print(f"STOP-LOSS: vendido {p.simbolo} ({p.pnl_pct:.1f}%)")
+
+    # 1b. En el ciclo completo (tras el cierre), dejar stops puestos en el broker para mañana
+    if usar_ia:
+        for msg in broker.proteger(broker.posiciones(), cfg.stop_loss_pct):
+            print(msg)
 
     # 2. Paradas generales
     v = riesgo.parada_general(broker.patrimonio(), inicio, cfg)

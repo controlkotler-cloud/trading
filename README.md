@@ -84,8 +84,21 @@ con mucha menos caída), no merece la pena.
 
 ## Ejecutarlo gratis en la nube (GitHub Actions)
 
-El archivo `.github/workflows/agente.yml` ejecuta el agente **de lunes a viernes a las 21:40 UTC**
-(después del cierre de la bolsa de EE. UU.) en los servidores de GitHub, gratis. El diario se guarda
+El archivo `.github/workflows/agente.yml` ejecuta, gratis en los servidores de GitHub:
+
+- **Ciclo completo con Claude** de lunes a viernes a las 21:40 UTC (después del cierre de EE. UU.).
+- **Vigilancia sin Claude** (no cuesta nada) cada 30 minutos durante la sesión: stop-loss y límites.
+
+### Protección durante el día
+
+1. **Stop en el broker (Alpaca):** cada noche el agente deja una orden stop-loss puesta en Alpaca por cada
+   posición. Si el precio cae durante la sesión, **Alpaca vende al instante**, aunque el agente no esté
+   funcionando. Es la protección principal.
+2. **Vigilancia cada 30 min:** segunda red de seguridad (y la única en modo simulado). GitHub puede
+   retrasar o saltarse alguna ejecución, por eso no es la protección principal.
+
+Ningún stop protege de un **salto en la apertura**: si una acción cierra a 100 y abre a 85 por una
+noticia nocturna, se vende a 85 aunque el stop esté en 92. El diario se guarda
 en la rama `datos` del repositorio, así que se conserva entre ejecuciones.
 
 Configuración (una sola vez), en GitHub → repositorio → **Settings → Secrets and variables → Actions**:

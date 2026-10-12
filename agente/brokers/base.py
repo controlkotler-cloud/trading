@@ -53,5 +53,14 @@ class Broker(ABC):
     def vender_todo(self, simbolo: str) -> str:
         """Cierra la posición entera. Devuelve el id de la orden."""
 
+    def proteger(self, posiciones: list[Posicion], stop_pct: float) -> list[str]:
+        """Deja órdenes stop-loss puestas en el propio broker para la próxima sesión.
+
+        Así, si el precio cae durante el día, el broker vende aunque nuestro programa no esté
+        ejecutándose. Por defecto no hace nada (el broker simulado no tiene órdenes pendientes).
+        Devuelve mensajes para el registro.
+        """
+        return []
+
     def patrimonio(self) -> float:
         return self.efectivo() + sum(p.valor for p in self.posiciones())

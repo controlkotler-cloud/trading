@@ -70,3 +70,13 @@ def test_sin_teclado_y_con_confirmacion_no_opera(cfg, tmp_path, monkeypatch):
     m.ciclo(replace(cfg, confirmar_ordenes=True), broker, diario)
     assert diario.operaciones() == []
     assert broker.efectivo() == 200
+
+
+def test_ciclo_completo_pide_stops_al_broker_y_vigilancia_no(cfg, tmp_path, monkeypatch):
+    broker, diario = preparar(tmp_path, monkeypatch, decision(accion="mantener", importe=0))
+    llamadas = []
+    broker.proteger = lambda posiciones, pct: llamadas.append(pct) or []
+    m.ciclo(cfg, broker, diario, usar_ia=False)
+    assert llamadas == []
+    m.ciclo(cfg, broker, diario)
+    assert llamadas == [cfg.stop_loss_pct]

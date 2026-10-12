@@ -1,7 +1,8 @@
 """Conexión con Alpaca (cuenta de práctica o real según ALPACA_PAPER).
 
-Usa órdenes limitadas con cantidades fraccionarias: pones tú el precio máximo
-de compra, así no pagas de más si el precio salta.
+Compra con órdenes limitadas y cantidades fraccionarias (pones tú el precio máximo,
+así no pagas de más si el precio salta) y deja órdenes stop-loss puestas en Alpaca
+para que venda durante la sesión aunque el agente no se esté ejecutando.
 """
 
 import os
@@ -67,5 +68,37 @@ class BrokerAlpaca(Broker):
             )
         return str(self.trading.submit_order(orden).id)
 
+    def _cancelar_ordenes(self, simbolo: str) -> None:
+        from alpaca.trading.enums import QueryOrderStatus
+        from alpaca.trading.requests import GetOrdersRequest
+
+        req = GetOrdersRequest(status=QueryOrderStatus.OPEN, symbols=[simbolo])
+        for orden in self.trading.get_orders(filter=req):
+            self.trading.cancel_order_by_id(orden.id)
+
     def vender_todo(self, simbolo: str) -> str:
+        self._cancelar_ordenes(simbolo)  # una orden stop pendiente bloquearía las acciones
         return str(self.trading.close_position(simbolo).id)
+
+    def proteger(self, posiciones: list[Posicion], stop_pct: float) -> list[str]:
+        """Pone (o renueva) una orden stop de venta por cada posición.
+
+        Las fracciones de acción solo admiten órdenes válidas para el día (DAY), así que se
+        renuevan en cada ejecución diaria; enviadas tras el cierre, valen para la sesión siguiente.
+        """
+        from alpaca.trading.enums import OrderSide, TimeInForce
+        from alpaca.trading.requests import StopOrderRequest
+
+        mensajes = []
+        for p in posiciones:
+            stop = round(p.precio_medio * (1 - stop_pct / 100), 2)
+            try:
+                self._cancelar_ordenes(p.simbolo)
+                self.trading.submit_order(StopOrderRequest(
+                    symbol=p.simbolo, qty=p.cantidad, side=OrderSide.SELL,
+                    stop_price=stop, time_in_force=TimeInForce.DAY,
+                ))
+                mensajes.append(f"Stop puesto en el broker: {p.simbolo} vende si baja de {stop}")
+            except Exception as e:  # que un fallo aquí no pare el resto del ciclo
+                mensajes.append(f"AVISO: no se pudo poner el stop de {p.simbolo}: {e}")
+        return mensajes
