@@ -239,7 +239,7 @@ def main(argv: list[str] | None = None) -> None:
         from pathlib import Path
 
         (Path(cfg.carpeta_datos) / "simulado.json").unlink(missing_ok=True)
-        for clave in ("maximos", "salidas", "pico_patrimonio", "vigilancia", "parada_total", "dia"):
+        for clave in ("maximos", "salidas", "pico_patrimonio", "vigilancia", "parada_total", "dia", "inicio"):
             diario.estado.pop(clave, None)
         diario._guardar_estado()
         print(f"Broker simulado reiniciado con {cfg.capital_simulado:.2f}.")

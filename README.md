@@ -20,6 +20,16 @@ Cada 10 min  Operador (sin IA, coste 0):
                 -> compra PCT_POR_POSICION del patrimonio actual (interés compuesto)
 ```
 
+### Resúmenes
+
+- **Diario** (tras el cierre, gratis): patrimonio, operaciones del día, posiciones con su stop y
+  comparación con comprar y mantener SPY.
+- **Semanal** (viernes, lo escribe Claude, ~0,05 $): qué ha funcionado, qué no y ajustes propuestos.
+
+Se publican como comentario en la incidencia "📊 Resúmenes del agente" (pestaña Issues) mencionando al
+dueño del repositorio, así llegan **por email y a la app de GitHub**. Para lanzarlos a mano:
+Run workflow → `resumen-diario` o `resumen-semanal`.
+
 Pruébalo antes con datos reales de los últimos 60 días:
 
 ```bash
@@ -198,6 +208,8 @@ por email si falla.
 | `agente/main.py` | Punto de entrada y ciclo del modo conservador |
 | `agente/operador.py` | Modo momentum: selección, stops dinámicos y entradas |
 | `agente/momentum.py` | Reglas de la estrategia de impulso |
+| `agente/resumen.py` | Resumen diario y revisión semanal |
+| `agente/noticias.py` | Titulares de Alpaca para la selección |
 | `agente/backtest_momentum.py` | Backtest intradía de la estrategia de impulso |
 | `agente/analista.py` | La llamada a Claude (comité de inversión) |
 | `agente/disparadores.py` | Reglas gratuitas que deciden si consultar a Claude |

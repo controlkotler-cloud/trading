@@ -16,11 +16,12 @@ on:
       modo:
         description: "Qué ejecutar"
         type: choice
-        options: [operar, seleccionar, estado, backtest-momentum, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
+        options: [operar, seleccionar, estado, resumen-diario, resumen-semanal, backtest-momentum, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
         default: operar
 
 permissions:
   contents: write  # para guardar el diario en la rama "datos"
+  issues: write    # para publicar los resúmenes
 
 concurrency:
   group: agente   # nunca dos ejecuciones a la vez
@@ -87,12 +88,34 @@ jobs:
             reiniciar-simulado) CMD="agente.main --reiniciar-simulado" ;;
             reactivar) CMD="agente.main --reactivar" ;;
             backtest-momentum) CMD="agente.backtest_momentum" ;;
+            resumen-diario|resumen-semanal) CMD="agente.main --estado" ;;
             *) CMD="agente.main" ;;
           esac
           python -m $CMD < /dev/null | tee salida.txt
           echo "" >> salida.txt
           python -m agente.main --estado < /dev/null >> salida.txt
           { echo '### Resultado del agente'; echo '```'; cat salida.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Publicar resumen (diario; los viernes también el semanal)
+        if: github.event.schedule == '40 21 * * 1-5' || inputs.modo == 'resumen-diario' || inputs.modo == 'resumen-semanal'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          python -m agente.resumen --diario < /dev/null > resumen.md
+          if [ "$(date -u +%u)" = "5" ] || [ "${{ inputs.modo }}" = "resumen-semanal" ]; then
+            { echo; echo '---'; echo; python -m agente.resumen --semanal < /dev/null; } >> resumen.md
+          fi
+          printf '\n@%s\n' "${{ github.repository_owner }}" >> resumen.md
+          cat resumen.md >> "$GITHUB_STEP_SUMMARY"
+          NUM=$(gh issue list --label resumen-agente --state open --json number --jq '.[0].number')
+          if [ -z "$NUM" ]; then
+            gh label create resumen-agente --color 1D76DB --description "Resúmenes del agente" 2>/dev/null || true
+            URL=$(gh issue create --title "📊 Resúmenes del agente" --label resumen-agente \
+              --body "Aquí se publican el resumen diario (tras el cierre) y la revisión semanal (viernes).")
+            NUM="${URL##*/}"
+          fi
+          gh issue comment "$NUM" --body-file resumen.md
 
       - name: Guardar el diario
         if: always()
