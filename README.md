@@ -10,7 +10,7 @@ Dos modos (variable `MODO`):
 ## Modo momentum
 
 ```
-13:15 UTC    Selección: ranking de impulso del UNIVERSO y Claude elige hasta 6 valores a vigilar (1 consulta/día)
+13:15 UTC    Selección: ranking de impulso del UNIVERSO + titulares de Alpaca; Claude elige hasta 6 valores (1 consulta/día)
 Cada 10 min  Operador (sin IA, coste 0):
              1. Seguridad: si cae PARADA_DRAWDOWN_PCT desde el máximo -> vende todo y se para
                            si hoy pierde MAX_PERDIDA_DIARIA_PCT -> no abre más hoy
@@ -175,7 +175,7 @@ Configuración (una sola vez), en GitHub → repositorio → **Settings → Secr
 | `MODO` | `momentum` | `momentum` o `conservador` |
 | `UNIVERSO` | 14 valores tecnológicos y ETFs | valores entre los que elige |
 | `TRAILING_PCT` / `MAX_POSICIONES` / `PCT_POR_POSICION` | `3` / `3` / `0.33` | stop dinámico y tamaño |
-| `CAPITAL_SIMULADO` | `200` | dinero ficticio inicial |
+| `CAPITAL_SIMULADO` | `2000` | dinero ficticio inicial |
 | `MAX_GASTO_IA_MES` | `2` | tope de gasto en Claude, en dólares |
 | `SIMBOLOS_PERMITIDOS` | `QQQ,VTI,AAPL,MSFT` | valores que puede operar |
 | `NUCLEO_SIMBOLO` / `NUCLEO_PCT` | (vacío) / `0.6` | modo conservador: núcleo que no se vende |

@@ -48,7 +48,7 @@ jobs:
       TRAILING_PCT: ${{ vars.TRAILING_PCT || '3' }}
       MAX_POSICIONES: ${{ vars.MAX_POSICIONES || '3' }}
       PCT_POR_POSICION: ${{ vars.PCT_POR_POSICION || '0.33' }}
-      CAPITAL_SIMULADO: ${{ vars.CAPITAL_SIMULADO || '200' }}
+      CAPITAL_SIMULADO: ${{ vars.CAPITAL_SIMULADO || '2000' }}
     steps:
       - uses: actions/checkout@v5
 

@@ -64,7 +64,7 @@ def cargar_config() -> Config:
         regla_dos_meses=env.get("REGLA_DOS_MESES", "true").lower() != "false",
         nucleo_simbolo=env.get("NUCLEO_SIMBOLO", "").strip().upper(),
         nucleo_pct=num("NUCLEO_PCT", 0.6),
-        capital_simulado=num("CAPITAL_SIMULADO", 200),
+        capital_simulado=num("CAPITAL_SIMULADO", 2000),
         modo=env.get("MODO", "momentum").strip().lower(),
         universo=tuple(x.strip().upper() for x in (env.get("UNIVERSO") or ",".join(Config.universo)).split(",") if x.strip()),
         vigilar_max=int(num("VIGILAR_MAX", 6)),

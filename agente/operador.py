@@ -44,9 +44,13 @@ def seleccionar(cfg: Config, broker: Broker, diario: Diario, usar_ia: bool = Tru
     if usar_ia and ranking and diario.gasto_ia_mes() < cfg.max_gasto_ia_mes:
         from agente.analista import Analista
 
+        from agente.noticias import titulares
+
+        noticias = titulares(ranking[:12])
+        print(f"Noticias: {sum(len(t) for t in noticias.values())} titulares de {len(noticias)} valores")
         analista = Analista()
         try:
-            sel = analista.seleccionar(resumenes, ranking, cfg.vigilar_max)
+            sel = analista.seleccionar(resumenes, ranking, cfg.vigilar_max, noticias)
         except Exception as e:
             sel = None
             print(f"Aviso: Claude no disponible ({e}); se usa el ranking")

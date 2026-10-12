@@ -55,7 +55,9 @@ class Seleccion(BaseModel):
 SISTEMA_SELECCION = """Eres el analista matinal de un agente de trading de impulso (momentum) intradía de alto riesgo.
 El agente compra rupturas al alza con volumen y sale con un stop dinámico. Tu trabajo: elegir qué valores
 del universo vigilar hoy. Prioriza los que tienen tendencia fuerte, volatilidad suficiente para moverse
-durante el día y liquidez. Evita los que están en caída o sin dirección. No inventes datos.
+durante el día y liquidez. Evita los que están en caída o sin dirección. Usa los titulares recientes:
+un catalizador claro (resultados, contratos, mejoras de recomendación) refuerza el impulso; resultados
+inminentes o noticias negativas son riesgo de salto en contra. No inventes datos ni noticias.
 Escribe en español y breve."""
 
 
@@ -102,11 +104,14 @@ class Analista:
         )
         return self._llamar(prompt, Decision, esfuerzo="high")
 
-    def seleccionar(self, resumenes: dict[str, dict], ranking: list[str], maximo: int) -> Seleccion | None:
+    def seleccionar(self, resumenes: dict[str, dict], ranking: list[str], maximo: int,
+                    noticias: dict[str, list[str]] | None = None) -> Seleccion | None:
         prompt = (
             f"Indicadores diarios del universo:\n{json.dumps(resumenes, ensure_ascii=False, indent=1)}\n\n"
             f"Ranking por impulso calculado en código: {ranking}\n\n"
-            f"Elige como mucho {maximo} valores para vigilar hoy y cuáles evitar."
+            + (f"Titulares recientes:\n{json.dumps(noticias, ensure_ascii=False, indent=1)}\n\n" if noticias
+               else "No hay titulares disponibles.\n\n")
+            + f"Elige como mucho {maximo} valores para vigilar hoy y cuáles evitar."
         )
         return self._llamar(prompt, Seleccion, esfuerzo="medium", sistema=SISTEMA_SELECCION)
 
