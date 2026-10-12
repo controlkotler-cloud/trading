@@ -1,0 +1,6 @@
+anthropic>=1.13,<2
+pydantic>=2,<3
+python-dotenv>=1,<2
+alpaca-py>=0.40
+yfinance>=0.2
+pytest>=8

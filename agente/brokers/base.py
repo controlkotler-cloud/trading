@@ -1,0 +1,57 @@
+"""Interfaz común: cualquier broker (simulado, Alpaca, Kraken, IBKR...) implementa esto."""
+
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
+
+
+@dataclass
+class Posicion:
+    simbolo: str
+    cantidad: float
+    precio_medio: float
+    precio_actual: float
+
+    @property
+    def valor(self) -> float:
+        return self.cantidad * self.precio_actual
+
+    @property
+    def pnl_pct(self) -> float:
+        return (self.precio_actual / self.precio_medio - 1) * 100
+
+
+@dataclass
+class Vela:
+    fecha: str
+    apertura: float
+    maximo: float
+    minimo: float
+    cierre: float
+    volumen: float
+
+
+class Broker(ABC):
+    nombre: str = "base"
+
+    @abstractmethod
+    def efectivo(self) -> float: ...
+
+    @abstractmethod
+    def posiciones(self) -> list[Posicion]: ...
+
+    @abstractmethod
+    def historico(self, simbolo: str, dias: int = 60) -> list[Vela]:
+        """Velas diarias, de la más antigua a la más reciente."""
+
+    @abstractmethod
+    def comprar(self, simbolo: str, importe: float, precio_limite: float | None = None) -> str:
+        """Compra por importe (permite fracciones), sin pagar más de precio_limite.
+
+        Devuelve el id de la orden."""
+
+    @abstractmethod
+    def vender_todo(self, simbolo: str) -> str:
+        """Cierra la posición entera. Devuelve el id de la orden."""
+
+    def patrimonio(self) -> float:
+        return self.efectivo() + sum(p.valor for p in self.posiciones())
