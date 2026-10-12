@@ -60,3 +60,13 @@ def test_stop_loss_vende_sin_ia(cfg, tmp_path, monkeypatch):
     m.ciclo(cfg, broker, diario, usar_ia=False)
     assert broker.posiciones() == []
     assert "stop-loss" in diario.operaciones()[0]["motivo"]
+
+
+def test_sin_teclado_y_con_confirmacion_no_opera(cfg, tmp_path, monkeypatch):
+    """En GitHub Actions no hay nadie para confirmar: la orden se propone pero no se ejecuta."""
+    from dataclasses import replace
+
+    broker, diario = preparar(tmp_path, monkeypatch, decision(importe=30))
+    m.ciclo(replace(cfg, confirmar_ordenes=True), broker, diario)
+    assert diario.operaciones() == []
+    assert broker.efectivo() == 200

@@ -17,9 +17,16 @@ from agente.indicadores import resumir
 
 def crear_broker(cfg: Config) -> Broker:
     if cfg.broker == "simulado":
+        import os
+
         from agente.brokers.simulado import BrokerSimulado
 
-        return BrokerSimulado(cfg.carpeta_datos, capital_inicial=cfg.capital_simulado)
+        fuente = None
+        if os.environ.get("ALPACA_API_KEY") and os.environ.get("ALPACA_SECRET_KEY"):
+            from agente.brokers.alpaca import BrokerAlpaca
+
+            fuente = BrokerAlpaca(paper=True)  # solo para leer precios
+        return BrokerSimulado(cfg.carpeta_datos, capital_inicial=cfg.capital_simulado, fuente_datos=fuente)
     if cfg.broker == "alpaca":
         from agente.brokers.alpaca import BrokerAlpaca
 
@@ -30,6 +37,10 @@ def crear_broker(cfg: Config) -> Broker:
 def confirmar(texto: str, cfg: Config) -> bool:
     if not cfg.confirmar_ordenes:
         return True
+    if not sys.stdin.isatty():
+        # Ejecución automática (p. ej. GitHub Actions) con confirmación activada: no se opera
+        print(f"\nPROPUESTA SIN EJECUTAR (requiere confirmación y no hay nadie al teclado):\n{texto}")
+        return False
     return input(f"\n{texto}\n¿Ejecutar? (s/n): ").strip().lower() in ("s", "si", "sí")
 
 

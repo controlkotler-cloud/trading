@@ -1,6 +1,8 @@
 """Broker simulado: precios reales (Yahoo Finance), dinero ficticio.
 
 Sirve para probar el agente completo sin cuenta en ningún broker.
+Si se le pasa una fuente de datos (p. ej. Alpaca), toma los precios de ahí en vez de Yahoo:
+Yahoo a veces bloquea las peticiones que vienen de servidores en la nube.
 El estado (efectivo y posiciones) se guarda en datos/simulado.json.
 """
 
@@ -14,7 +16,9 @@ from agente.brokers.base import Broker, Posicion, Vela
 class BrokerSimulado(Broker):
     nombre = "simulado"
 
-    def __init__(self, carpeta: str, capital_inicial: float = 200.0, comision: float = 0.0):
+    def __init__(self, carpeta: str, capital_inicial: float = 200.0, comision: float = 0.0,
+                 fuente_datos: Broker | None = None):
+        self.fuente_datos = fuente_datos
         self.ruta = Path(carpeta) / "simulado.json"
         self.comision = comision
         self._cache_velas: dict[str, list[Vela]] = {}
@@ -29,6 +33,8 @@ class BrokerSimulado(Broker):
         self.ruta.write_text(json.dumps(self.estado, indent=2))
 
     def historico(self, simbolo: str, dias: int = 60) -> list[Vela]:
+        if simbolo not in self._cache_velas and self.fuente_datos is not None:
+            self._cache_velas[simbolo] = self.fuente_datos.historico(simbolo, 120)
         if simbolo not in self._cache_velas:
             import yfinance as yf
 

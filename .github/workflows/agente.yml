@@ -1,0 +1,79 @@
+# Ejecuta el agente cada día laborable tras el cierre de la bolsa de EE. UU.
+# y guarda el diario (carpeta datos/) en la rama "datos" del repositorio.
+name: Agente diario
+
+on:
+  schedule:
+    - cron: "40 21 * * 1-5"  # 21:40 UTC, lunes a viernes (GitHub puede retrasarlo unos minutos)
+  workflow_dispatch:          # botón "Run workflow" para lanzarlo a mano (también desde el móvil)
+    inputs:
+      modo:
+        description: "Qué ejecutar"
+        type: choice
+        options: [completo, sin-ia, estado]
+        default: completo
+
+permissions:
+  contents: write  # para guardar el diario en la rama "datos"
+
+concurrency:
+  group: agente   # nunca dos ejecuciones a la vez
+  cancel-in-progress: false
+
+jobs:
+  agente:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+      BROKER: ${{ vars.BROKER || 'simulado' }}
+      ALPACA_PAPER: ${{ vars.ALPACA_PAPER || 'true' }}
+      # Sin nadie al teclado: si CONFIRMAR_ORDENES es true, las órdenes se proponen pero NO se ejecutan
+      CONFIRMAR_ORDENES: ${{ vars.CONFIRMAR_ORDENES || 'false' }}
+      MAX_GASTO_IA_MES: ${{ vars.MAX_GASTO_IA_MES || '5' }}
+      SIMBOLOS_PERMITIDOS: ${{ vars.SIMBOLOS_PERMITIDOS || 'SPY,QQQ,VTI,AAPL,MSFT' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Recuperar el diario (rama datos)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          URL="https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$URL" datos >/dev/null; then
+            git clone --quiet --branch datos --single-branch "$URL" datos
+          else
+            mkdir datos && git -C datos init --quiet -b datos && git -C datos remote add origin "$URL"
+          fi
+
+      - name: Ejecutar el agente
+        run: |
+          MODO="${{ inputs.modo || 'completo' }}"
+          case "$MODO" in
+            sin-ia) ARGS="--sin-ia" ;;
+            estado) ARGS="--estado" ;;
+            *)      ARGS="" ;;
+          esac
+          python -m agente.main $ARGS < /dev/null | tee salida.txt
+          echo "" >> salida.txt
+          python -m agente.main --estado < /dev/null >> salida.txt
+          { echo '### Resultado del agente'; echo '```'; cat salida.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Guardar el diario
+        if: always()
+        run: |
+          cd datos
+          git config user.name "agente-trading"
+          git config user.email "agente-trading@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet || git commit --quiet -m "Diario $(date -u +%F)"
+          if git rev-parse --verify --quiet HEAD >/dev/null; then git push --quiet origin datos; fi
