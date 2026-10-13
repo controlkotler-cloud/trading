@@ -36,6 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 420  # el modo bucle-hasta-cierre puede durar toda la sesión
     env:
+      PYTHONUNBUFFERED: "1"  # que el registro se vea en directo en Actions
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
       ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
