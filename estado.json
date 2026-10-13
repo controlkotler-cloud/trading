@@ -1,7 +1,7 @@
 {
   "patrimonio_inicio_dia": 2000.0,
   "gasto_ia": {
-    "2026-10": 0.054592
+    "2026-10": 0.087388
   },
   "dia": "2026-10-13",
   "pico_patrimonio": 2000.6668859339409,
@@ -16,11 +16,11 @@
       "PLTR",
       "META",
       "MSFT",
+      "AMD",
       "AAPL",
-      "AMZN",
-      "GOOGL"
+      "TSLA"
     ],
-    "motivo": "PLTR lidera el impulso (+20,5% en 20d, +8,3% en 5d), cerca de su m\u00e1ximo de 60d; RSI 74, sobrecompra que exige stop ce\u00f1ido. META tiene tendencia fuerte, buena volatilidad (3,4%) y catalizador: Pivotal mantiene Buy y sube el objetivo a 930$. MSFT est\u00e1 pegada a su m\u00e1ximo de 60d, con +10% en 20d; RSI 72, vigilar sobrecompra. AAPL rompe m\u00e1ximos y marca nuevo m\u00e1ximo de 52 semanas, aunque su volatilidad es baja. AMZN y GOOGL cotizan sobre la media de 20, con impulso moderado y noticias neutras o positivas (demo satelital con el Ej\u00e9rcito para AMZN). A evitar: NVDA y AVGO caen un 6% en 5d y est\u00e1n bajo la media de 20. NFLX est\u00e1 en tendencia bajista en 20d. AMD corrige casi un 10% en 5d y queda bajo la media de 20. TSLA tiene resultados inminentes el 21/10 (riesgo de salto). COIN cotiza bajo la media de 20 y sin direcci\u00f3n. SPY y QQQ tienen poca volatilidad para impulso intrad\u00eda."
+    "motivo": "PLTR: impulso m\u00e1s fuerte (+8,6% en 5d, +20,9% en 20d), cerca de m\u00e1ximos de 60d; RSI 75 indica sobrecompra, as\u00ed que conviene esperar la ruptura con volumen. META: tendencia clara sobre sus medias, volatilidad alta (3,4%) y un analista destaca sus nuevos modelos de IA; el titular de Bloomberg sobre la incertidumbre de su apuesta en IA es un riesgo a vigilar. MSFT: Barclays sube el precio objetivo a 600 $, cotiza cerca de m\u00e1ximos y tiene RSI 70,8. AMD: fuerte en 20d (+20%) y muy vol\u00e1til, con catalizador por el respaldo a Fermi, pero corrige en 5d y el sector de chips cae por el KOSPI; solo vigilar si recupera la media de 20. AAPL: ruptura de m\u00e1ximos activa, aunque con baja volatilidad (1%). TSLA: tendencia alcista sobre sus medias y volatilidad decente, a falta de un catalizador claro. Evitar: NFLX est\u00e1 en ca\u00edda (-9,5% en 20d) y por debajo de su media de 50; AVGO est\u00e1 bajo su media de 50 y cae un 4,9% en 5d; NVDA, sin direcci\u00f3n y con -4,5% en 5d en pleno sector de chips d\u00e9bil; COIN, bajo su media de 20; los \u00edndices SPY y QQQ tienen poca volatilidad para hacer momentum."
   },
   "maximos": {
     "PLTR": 209.23,
