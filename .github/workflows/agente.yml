@@ -8,7 +8,7 @@ name: Agente diario
 on:
   schedule:
     - cron: "15 13 * * 1-5"       # selección: 13:15 UTC (antes de la apertura en verano e invierno)
-    - cron: "*/10 13-20 * * 1-5"  # operador: cada 10 min de 13:00 a 20:50 UTC (cubre la sesión todo el año)
+    - cron: "*/5 13-20 * * 1-5"   # operador: cada 5 min de 13:00 a 20:55 UTC (cubre la sesión todo el año)
     - cron: "40 21 * * 1-5"       # pasada nocturna: 21:40 UTC
     # Nota: GitHub puede retrasar o saltarse alguna ejecución programada si está saturado.
   workflow_dispatch:          # botón "Run workflow" para lanzarlo a mano (también desde el móvil)
@@ -50,9 +50,13 @@ jobs:
       SIMBOLOS_PERMITIDOS: ${{ vars.SIMBOLOS_PERMITIDOS || 'QQQ,VTI,AAPL,MSFT' }}
       MODO: ${{ vars.MODO || 'momentum' }}
       UNIVERSO: ${{ vars.UNIVERSO }}
-      TRAILING_PCT: ${{ vars.TRAILING_PCT || '3' }}
-      MAX_POSICIONES: ${{ vars.MAX_POSICIONES || '3' }}
-      PCT_POR_POSICION: ${{ vars.PCT_POR_POSICION || '0.33' }}
+      # Configuración agresiva (backtest 60 días: +13,7 % frente a +8 % de comprar y mantener)
+      TRAILING_PCT: ${{ vars.TRAILING_PCT || '2' }}
+      MAX_POSICIONES: ${{ vars.MAX_POSICIONES || '5' }}
+      PCT_POR_POSICION: ${{ vars.PCT_POR_POSICION || '0.2' }}
+      MINUTOS_VELA: ${{ vars.MINUTOS_VELA || '5' }}
+      BARRAS_RUPTURA: ${{ vars.BARRAS_RUPTURA || '12' }}
+      VOLUMEN_MINIMO: ${{ vars.VOLUMEN_MINIMO || '1.2' }}
       CAPITAL_SIMULADO: ${{ vars.CAPITAL_SIMULADO || '2000' }}
     steps:
       - uses: actions/checkout@v5
@@ -81,7 +85,7 @@ jobs:
           ACCION="${{ inputs.modo || 'completo' }}"
           case "${{ github.event.schedule }}" in
             "15 13 * * 1-5")      ACCION="seleccionar" ;;
-            "*/10 13-20 * * 1-5") ACCION="operar" ;;
+            "*/5 13-20 * * 1-5") ACCION="operar" ;;
           esac
           case "$ACCION" in
             sin-ia) CMD="agente.main --sin-ia" ;;
