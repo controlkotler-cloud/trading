@@ -1,7 +1,7 @@
 {
   "patrimonio_inicio_dia": 2000.0,
   "gasto_ia": {
-    "2026-10": 0.023284
+    "2026-10": 0.054592
   },
   "dia": "2026-10-13",
   "pico_patrimonio": 2000.0,
@@ -9,5 +9,17 @@
     "fecha": "2026-10-13",
     "patrimonio": 2000.0,
     "referencia": 777.96
+  },
+  "vigilancia": {
+    "dia": "2026-10-13",
+    "simbolos": [
+      "PLTR",
+      "META",
+      "MSFT",
+      "AAPL",
+      "AMZN",
+      "GOOGL"
+    ],
+    "motivo": "PLTR lidera el impulso (+20,5% en 20d, +8,3% en 5d), cerca de su m\u00e1ximo de 60d; RSI 74, sobrecompra que exige stop ce\u00f1ido. META tiene tendencia fuerte, buena volatilidad (3,4%) y catalizador: Pivotal mantiene Buy y sube el objetivo a 930$. MSFT est\u00e1 pegada a su m\u00e1ximo de 60d, con +10% en 20d; RSI 72, vigilar sobrecompra. AAPL rompe m\u00e1ximos y marca nuevo m\u00e1ximo de 52 semanas, aunque su volatilidad es baja. AMZN y GOOGL cotizan sobre la media de 20, con impulso moderado y noticias neutras o positivas (demo satelital con el Ej\u00e9rcito para AMZN). A evitar: NVDA y AVGO caen un 6% en 5d y est\u00e1n bajo la media de 20. NFLX est\u00e1 en tendencia bajista en 20d. AMD corrige casi un 10% en 5d y queda bajo la media de 20. TSLA tiene resultados inminentes el 21/10 (riesgo de salto). COIN cotiza bajo la media de 20 y sin direcci\u00f3n. SPY y QQQ tienen poca volatilidad para impulso intrad\u00eda."
   }
 }
