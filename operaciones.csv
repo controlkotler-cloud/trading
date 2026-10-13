@@ -1,3 +1,4 @@
 fecha,broker,accion,simbolo,cantidad,importe,precio,resultado,orden_id,motivo
 2026-10-13T18:10:28,simulado,comprar,PLTR,1.915571,400.0,208.815,,sim-0f9272ab,rompe máximo de 12 velas (+0.14%) con volumen x1.3
 2026-10-13T18:10:28,simulado,comprar,META,0.52276,400.0,765.17,,sim-ab12ce4f,rompe máximo de 12 velas (+0.11%) con volumen x2.0
+2026-10-13T19:39:01,simulado,comprar,AMZN,1.541262,400.05,259.56,,sim-64f96e36,rompe máximo de 12 velas (+0.05%) con volumen x2.0

@@ -1,5 +1,5 @@
 {
-  "efectivo": 1200.0,
+  "efectivo": 799.95,
   "posiciones": {
     "PLTR": {
       "cantidad": 1.9155711993870173,
@@ -8,6 +8,10 @@
     "META": {
       "cantidad": 0.5227596481827568,
       "precio_medio": 765.17
+    },
+    "AMZN": {
+      "cantidad": 1.5412621359223302,
+      "precio_medio": 259.56
     }
   }
 }
