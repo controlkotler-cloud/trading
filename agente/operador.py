@@ -121,6 +121,7 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
         return
 
     vigilar = diario.vigilancia() or seleccionar(cfg, broker, diario, usar_ia=False)
+    print(f"Buscando entradas en: {', '.join(vigilar)} ({huecos} huecos libres)")
     tengo = {p.simbolo for p in posiciones}
     for s in vigilar:
         if huecos <= 0:
@@ -129,6 +130,7 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
             continue
         espera = diario.minutos_desde_salida(s)
         if espera is not None and espera < cfg.espera_reentrada_min:
+            print(f"  {s}: vendido hace {espera:.0f} min, espera {cfg.espera_reentrada_min} min")
             continue
         try:
             velas = broker.intradia(s, cfg.minutos_vela)
@@ -137,6 +139,7 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
             continue
         senal = momentum.senal_entrada(velas, cfg.barras_ruptura, cfg.volumen_minimo)
         if not senal.entrar:
+            print(f"  {s}: {senal.motivo}")
             continue
         importe = momentum.tamano_posicion(broker.patrimonio(), broker.efectivo(), cfg.pct_por_posicion)
         if importe < 1:

@@ -38,13 +38,14 @@ def senal_entrada(velas: list[Vela], barras_ruptura: int = 20, volumen_minimo: f
     previas = velas[-barras_ruptura - 1:-1]
     maximo_previo = max(v.maximo for v in previas)
     if ultima.cierre <= maximo_previo:
-        return Senal(False, "sin ruptura")
+        falta = (maximo_previo / ultima.cierre - 1) * 100
+        return Senal(False, f"sin ruptura: {ultima.cierre:.2f}, le falta un {falta:.2f}% para su máximo {maximo_previo:.2f}")
     media = ema([v.cierre for v in velas[-60:]], 20)
     if ultima.cierre <= media:
-        return Senal(False, "por debajo de su media")
+        return Senal(False, f"por debajo de su media ({ultima.cierre:.2f} < {media:.2f})")
     vol_medio = sum(v.volumen for v in previas) / len(previas)
     if vol_medio > 0 and ultima.volumen < volumen_minimo * vol_medio:
-        return Senal(False, "sin volumen")
+        return Senal(False, f"rompe pero sin volumen (x{ultima.volumen / vol_medio:.1f}, pide x{volumen_minimo})")
     subida = (ultima.cierre / maximo_previo - 1) * 100
     return Senal(True, f"rompe máximo de {barras_ruptura} velas (+{subida:.2f}%) con volumen "
                        f"x{ultima.volumen / vol_medio:.1f}" if vol_medio else "rompe máximo")
