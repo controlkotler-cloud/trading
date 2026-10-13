@@ -1,6 +1,13 @@
 {
-  "patrimonio_inicio_dia": 200.0,
+  "patrimonio_inicio_dia": 2000.0,
   "gasto_ia": {
     "2026-10": 0.023284
+  },
+  "dia": "2026-10-13",
+  "pico_patrimonio": 2000.0,
+  "inicio": {
+    "fecha": "2026-10-13",
+    "patrimonio": 2000.0,
+    "referencia": 777.96
   }
 }
