@@ -18,6 +18,10 @@ on:
         type: choice
         options: [operar, seleccionar, estado, resumen-diario, resumen-semanal, backtest-momentum, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
         default: operar
+      parametros:
+        description: "Opciones extra para backtest-momentum (p. ej. --minutos 5 --barras 12 --trailing 2)"
+        required: false
+        default: ""
 
 permissions:
   contents: write  # para guardar el diario en la rama "datos"
@@ -87,7 +91,7 @@ jobs:
             probar-claude) CMD="agente.main --probar-claude" ;;
             reiniciar-simulado) CMD="agente.main --reiniciar-simulado" ;;
             reactivar) CMD="agente.main --reactivar" ;;
-            backtest-momentum) CMD="agente.backtest_momentum" ;;
+            backtest-momentum) CMD="agente.backtest_momentum ${{ inputs.parametros }}" ;;
             resumen-diario|resumen-semanal) CMD="agente.main --estado" ;;
             *) CMD="agente.main" ;;
           esac

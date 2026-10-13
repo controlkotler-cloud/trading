@@ -104,7 +104,7 @@ def simular(series: dict[str, list[Vela]], p: Parametros) -> Resultado:
     return Resultado((final / p.capital - 1) * 100, referencia, max_caida, ops, curva)
 
 
-def descargar(simbolos: list[str], dias: int) -> dict[str, list[Vela]]:
+def descargar(simbolos: list[str], dias: int, minutos: int = 15) -> dict[str, list[Vela]]:
     series = {}
     usar_alpaca = os.environ.get("ALPACA_API_KEY") and os.environ.get("ALPACA_SECRET_KEY")
     for s in simbolos:
@@ -112,11 +112,11 @@ def descargar(simbolos: list[str], dias: int) -> dict[str, list[Vela]]:
             if usar_alpaca:
                 from agente.brokers.alpaca import BrokerAlpaca
 
-                velas = BrokerAlpaca(paper=True).intradia(s, 15, dias)
+                velas = BrokerAlpaca(paper=True).intradia(s, minutos, dias)
             else:
                 import yfinance as yf
 
-                df = yf.Ticker(s).history(period=f"{min(dias, 59)}d", interval="15m", auto_adjust=True)
+                df = yf.Ticker(s).history(period=f"{min(dias, 59)}d", interval=f"{minutos}m", auto_adjust=True)
                 velas = [Vela(str(i), r.Open, r.High, r.Low, r.Close, r.Volume) for i, r in df.iterrows()]
         except Exception as e:
             print(f"{s}: sin datos ({e})")
@@ -136,7 +136,8 @@ def informe(series: dict[str, list[Vela]], p: Parametros) -> str:
     ultima = max(v[-1].fecha for v in series.values())
     return "\n".join([
         f"\nBacktest momentum: {', '.join(series)} | {primera[:10]} -> {ultima[:10]}",
-        f"Trailing {p.trailing_pct}% | {p.max_posiciones} posiciones de {p.pct_por_posicion:.0%} | coste {p.coste_pct}%\n",
+        f"Trailing {p.trailing_pct}% | {p.max_posiciones} posiciones de {p.pct_por_posicion:.0%} | ruptura de "
+        f"{p.barras_ruptura} velas | volumen x{p.volumen_minimo} | coste {p.coste_pct}%\n",
         f"Rentabilidad de la estrategia: {r.rentabilidad_pct:+.1f}%  ({p.capital:.0f} -> {p.capital * (1 + r.rentabilidad_pct / 100):.0f})",
         f"Comprar y mantener lo mismo:   {r.referencia_pct:+.1f}%",
         f"Caída máxima:                  {r.max_caida_pct:.1f}%",
@@ -161,13 +162,15 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--posiciones", type=int, default=cfg.max_posiciones)
     ap.add_argument("--pct", type=float, default=cfg.pct_por_posicion)
     ap.add_argument("--coste", type=float, default=0.05)
+    ap.add_argument("--minutos", type=int, default=cfg.minutos_vela, help="duración de cada vela")
+    ap.add_argument("--barras", type=int, default=cfg.barras_ruptura, help="velas para el máximo a romper")
+    ap.add_argument("--volumen", type=float, default=cfg.volumen_minimo, help="volumen mínimo (x la media)")
     args = ap.parse_args(argv)
 
-    series = descargar([s.upper() for s in args.simbolos], args.dias)
+    series = descargar([s.upper() for s in args.simbolos], args.dias, args.minutos)
     if not series:
         raise SystemExit("No hay datos.")
-    p = Parametros(args.capital, args.posiciones, args.pct, args.trailing, cfg.barras_ruptura,
-                   cfg.volumen_minimo, args.coste)
+    p = Parametros(args.capital, args.posiciones, args.pct, args.trailing, args.barras, args.volumen, args.coste)
     print(informe(series, p))
 
 
