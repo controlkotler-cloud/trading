@@ -158,18 +158,27 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
         print(f"COMPRA {s} por {importe:.2f} a ~{precio:.2f}: {senal.motivo}")
 
 
-def bucle(cfg: Config, crear_broker, diario: Diario, segundos: int = 60) -> None:
-    """Pasadas continuas mientras el mercado está abierto. Para un Mac encendido o un servidor."""
-    import time
+def bucle(cfg: Config, crear_broker, diario: Diario, segundos: int = 60, hasta_cierre: bool = False) -> None:
+    """Pasadas continuas mientras el mercado está abierto. Para un Mac encendido o un servidor.
 
-    print(f"Operador en marcha: una pasada cada {segundos} s. Ctrl+C para parar.")
+    hasta_cierre: termina en cuanto el mercado está cerrado (para una ejecución de GitHub Actions).
+    """
+    import time
+    from datetime import datetime
+
+    print(f"Operador en marcha: una pasada cada {segundos} s.", flush=True)
     while True:
         broker = crear_broker(cfg)  # nuevo cada vez: datos frescos
         try:
-            if broker.mercado_abierto():
+            abierto = broker.mercado_abierto()
+            if abierto:
+                print(f"\n--- {datetime.now():%H:%M:%S} ---", flush=True)
                 if not diario.vigilancia():
                     seleccionar(cfg, broker, diario)
                 operar(cfg, broker, diario)
+            elif hasta_cierre:
+                print("Mercado cerrado: fin del bucle.")
+                return
         except Exception as e:  # un fallo puntual de red no debe parar el bucle
-            print(f"Error en la pasada: {e}")
+            print(f"Error en la pasada: {e}", flush=True)
         time.sleep(segundos)

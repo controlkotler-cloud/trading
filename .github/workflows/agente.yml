@@ -16,7 +16,7 @@ on:
       modo:
         description: "Qué ejecutar"
         type: choice
-        options: [operar, seleccionar, estado, resumen-diario, resumen-semanal, backtest-momentum, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
+        options: [operar, bucle-hasta-cierre, seleccionar, estado, resumen-diario, resumen-semanal, backtest-momentum, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
         default: operar
       parametros:
         description: "Opciones extra para backtest-momentum (p. ej. --minutos 5 --barras 12 --trailing 2)"
@@ -34,7 +34,7 @@ concurrency:
 jobs:
   agente:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 420  # el modo bucle-hasta-cierre puede durar toda la sesión
     env:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
@@ -90,6 +90,7 @@ jobs:
           case "$ACCION" in
             sin-ia) CMD="agente.main --sin-ia" ;;
             operar) CMD="agente.main --operar" ;;
+            bucle-hasta-cierre) CMD="agente.main --bucle --segundos 120 --hasta-cierre" ;;
             seleccionar) CMD="agente.main --seleccionar" ;;
             estado) CMD="agente.main --estado" ;;
             probar-claude) CMD="agente.main --probar-claude" ;;
