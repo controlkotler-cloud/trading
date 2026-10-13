@@ -1,4 +1,13 @@
 {
-  "efectivo": 2000.0,
-  "posiciones": {}
+  "efectivo": 1200.0,
+  "posiciones": {
+    "PLTR": {
+      "cantidad": 1.9155711993870173,
+      "precio_medio": 208.815
+    },
+    "META": {
+      "cantidad": 0.5227596481827568,
+      "precio_medio": 765.17
+    }
+  }
 }
