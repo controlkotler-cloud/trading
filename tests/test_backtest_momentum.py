@@ -38,3 +38,11 @@ def test_costes_restan():
 def test_informe():
     texto = bm.informe({"A": serie(0.001)}, bm.Parametros())
     assert "Rentabilidad de la estrategia" in texto
+
+
+def test_comparar_y_mejoras_no_rompen():
+    datos = {"A": serie(0.001), "B": serie(0.001, semilla=3)}
+    texto = bm.comparar(datos, bm.Parametros(), None)
+    assert "Actual (sin mejoras)" in texto and "RESULTADO_JSON" in texto
+    r = bm.simular(datos, bm.Parametros(parcial_pct=1, stop_atr=4))
+    assert min(r.curva) > 0

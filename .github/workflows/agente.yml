@@ -19,7 +19,7 @@ on:
         options: [operar, bucle-hasta-cierre, seleccionar, estado, resumen-diario, resumen-semanal, backtest-momentum, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
         default: operar
       parametros:
-        description: "Opciones extra para backtest-momentum (p. ej. --minutos 5 --barras 12 --trailing 2)"
+        description: "Opciones extra para backtest-momentum (p. ej. --comparar --dias 120)"
         required: false
         default: ""
 
@@ -28,7 +28,8 @@ permissions:
   issues: write    # para publicar los resúmenes
 
 concurrency:
-  group: agente   # nunca dos ejecuciones a la vez
+  # nunca dos ejecuciones del agente a la vez; los backtests van aparte (no tocan el diario)
+  group: ${{ inputs.modo == 'backtest-momentum' && 'backtest' || 'agente' }}
   cancel-in-progress: false
 
 jobs:
@@ -128,7 +129,7 @@ jobs:
           gh issue comment "$NUM" --body-file resumen.md
 
       - name: Guardar el diario
-        if: always()
+        if: always() && inputs.modo != 'backtest-momentum'
         run: |
           cd datos
           git config user.name "agente-trading"

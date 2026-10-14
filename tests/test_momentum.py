@@ -43,3 +43,27 @@ def test_ranking_excluye_bajistas():
          "B": {"precio": 10, "media_50": 9, "cambio_20d_pct": 5, "cambio_5d_pct": 1},
          "C": {"precio": 8, "media_50": 9, "cambio_20d_pct": 30, "cambio_5d_pct": 9}}
     assert momentum.ranking_impulso(r) == ["A", "B"]
+
+
+def test_distancia_stop_se_adapta_al_valor():
+    from agente.brokers.base import Vela
+    tranquilo = [Vela("t", 100, 100.1, 99.9, 100, 1) for _ in range(20)]
+    nervioso = [Vela("t", 100, 101, 99, 100, 1) for _ in range(20)]
+    assert momentum.distancia_stop(tranquilo, 2, 0) == 2  # desactivado: trailing fijo
+    assert momentum.distancia_stop(tranquilo, 2, 4) == 1.0  # mínimo 1 %
+    assert momentum.distancia_stop(nervioso, 2, 4) == 6.0   # máximo 6 %
+
+
+def test_minutos_sesion_y_horario():
+    desde, hasta = momentum.minutos_sesion("2026-10-14 13:40:00+00:00")  # 9:40 en Nueva York
+    assert (desde, hasta) == (10, 380)
+    assert not momentum.en_horario(desde, hasta, 15, 30)
+    assert momentum.en_horario(desde, hasta, 0, 0)
+    assert momentum.minutos_sesion("d1") is None
+
+
+def test_mercado_favorable():
+    from agente.brokers.base import Vela
+    sube = [Vela("t", c, c, c, c, 1) for c in range(100, 160)]
+    baja = [Vela("t", c, c, c, c, 1) for c in range(160, 100, -1)]
+    assert momentum.mercado_favorable(sube) and not momentum.mercado_favorable(baja)

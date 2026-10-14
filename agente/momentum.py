@@ -74,3 +74,51 @@ def ranking_impulso(resumenes: dict[str, dict]) -> list[str]:
             continue
         candidatos.append((r["cambio_20d_pct"] + r["cambio_5d_pct"], s))
     return [s for _, s in sorted(candidatos, reverse=True)]
+
+
+# --- mejoras "de trader" (cada una se activa por separado y se valida en el backtest) ---
+
+def atr_pct(velas: list[Vela], n: int = 14) -> float:
+    """Rango medio de las últimas n velas, en % del precio: cuánto se mueve normalmente el valor."""
+    if len(velas) < 2:
+        return 0.0
+    rangos = []
+    for anterior, v in zip(velas[-n - 1:-1], velas[-n:]):
+        rangos.append(max(v.maximo, anterior.cierre) - min(v.minimo, anterior.cierre))
+    return sum(rangos) / len(rangos) / velas[-1].cierre * 100 if rangos else 0.0
+
+
+def distancia_stop(velas: list[Vela], trailing_pct: float, stop_atr: float) -> float:
+    """% de caída desde el máximo que se tolera. Con stop_atr > 0 se adapta a lo que se mueve el valor
+    (stop_atr veces su rango medio), entre el 1 % y el 6 %; si no, el trailing fijo."""
+    if stop_atr <= 0:
+        return trailing_pct
+    return round(min(6.0, max(1.0, stop_atr * atr_pct(velas))), 2)
+
+
+def minutos_sesion(fecha: str) -> tuple[int, int] | None:
+    """(minutos desde la apertura, minutos hasta el cierre) de una vela, en hora de Nueva York."""
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+
+    try:
+        t = datetime.fromisoformat(fecha)
+    except ValueError:
+        return None
+    if t.tzinfo is not None:
+        t = t.astimezone(ZoneInfo("America/New_York"))
+    m = t.hour * 60 + t.minute
+    return m - (9 * 60 + 30), 16 * 60 - m
+
+
+def en_horario(desde_apertura: int, hasta_cierre: int, evitar_apertura_min: int, evitar_cierre_min: int) -> bool:
+    """Fuera de los primeros minutos (caóticos) y de los últimos (sin tiempo para que funcione)."""
+    return desde_apertura >= evitar_apertura_min and hasta_cierre > evitar_cierre_min
+
+
+def mercado_favorable(velas_referencia: list[Vela]) -> bool:
+    """El mercado general (QQQ) va por encima de su media intradía: el viento sopla a favor."""
+    if len(velas_referencia) < 21:
+        return True  # sin datos no se bloquea
+    cierres = [v.cierre for v in velas_referencia[-60:]]
+    return cierres[-1] > ema(cierres, 20)
