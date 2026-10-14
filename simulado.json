@@ -1,17 +1,17 @@
 {
-  "efectivo": 799.95,
+  "efectivo": 779.8376814275402,
   "posiciones": {
-    "PLTR": {
-      "cantidad": 1.9155711993870173,
-      "precio_medio": 208.815
+    "AAPL": {
+      "cantidad": 1.1465529700823818,
+      "precio_medio": 345.95
     },
     "META": {
-      "cantidad": 0.5227596481827568,
-      "precio_medio": 765.17
+      "cantidad": 0.5298995894142038,
+      "precio_medio": 737.97
     },
-    "AMZN": {
-      "cantidad": 1.5412621359223302,
-      "precio_medio": 259.56
+    "COIN": {
+      "cantidad": 2.2636103151862463,
+      "precio_medio": 172.755
     }
   }
 }

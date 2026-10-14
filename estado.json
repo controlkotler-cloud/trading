@@ -1,7 +1,7 @@
 {
   "patrimonio_inicio_dia": 1996.8062922561803,
   "gasto_ia": {
-    "2026-10": 0.087388
+    "2026-10": 0.119092
   },
   "dia": "2026-10-14",
   "pico_patrimonio": 2000.6668859339409,
@@ -11,20 +11,27 @@
     "referencia": 777.96
   },
   "vigilancia": {
-    "dia": "2026-10-13",
+    "dia": "2026-10-14",
     "simbolos": [
       "PLTR",
       "META",
       "MSFT",
-      "AMD",
       "AAPL",
-      "TSLA"
+      "GOOGL",
+      "COIN"
     ],
-    "motivo": "PLTR: impulso m\u00e1s fuerte (+8,6% en 5d, +20,9% en 20d), cerca de m\u00e1ximos de 60d; RSI 75 indica sobrecompra, as\u00ed que conviene esperar la ruptura con volumen. META: tendencia clara sobre sus medias, volatilidad alta (3,4%) y un analista destaca sus nuevos modelos de IA; el titular de Bloomberg sobre la incertidumbre de su apuesta en IA es un riesgo a vigilar. MSFT: Barclays sube el precio objetivo a 600 $, cotiza cerca de m\u00e1ximos y tiene RSI 70,8. AMD: fuerte en 20d (+20%) y muy vol\u00e1til, con catalizador por el respaldo a Fermi, pero corrige en 5d y el sector de chips cae por el KOSPI; solo vigilar si recupera la media de 20. AAPL: ruptura de m\u00e1ximos activa, aunque con baja volatilidad (1%). TSLA: tendencia alcista sobre sus medias y volatilidad decente, a falta de un catalizador claro. Evitar: NFLX est\u00e1 en ca\u00edda (-9,5% en 20d) y por debajo de su media de 50; AVGO est\u00e1 bajo su media de 50 y cae un 4,9% en 5d; NVDA, sin direcci\u00f3n y con -4,5% en 5d en pleno sector de chips d\u00e9bil; COIN, bajo su media de 20; los \u00edndices SPY y QQQ tienen poca volatilidad para hacer momentum."
+    "motivo": "PLTR: tendencia m\u00e1s fuerte (+17,7% en 20 d\u00edas, precio sobre las medias de 20 y 50, a un 3,6% del m\u00e1ximo de 60 d\u00edas). Ojo con el RSI de 69,6, cerca de sobrecompra. META: impulso s\u00f3lido (+3,9% en 5 d\u00edas, +11,3% en 20), alta volatilidad (3,5%) y catalizador claro: Guggenheim eleva el precio objetivo a 850 $. MSFT: fuerte subida en 20 d\u00edas (+10,9%) y cerca de m\u00e1ximos, pero con RSI de 71 (sobrecompra); solo entrar con ruptura confirmada por volumen. AAPL: a menos de un 1% del m\u00e1ximo de 60 d\u00edas, candidata a ruptura, aunque con volatilidad baja y un litigio con OpenAI como riesgo. GOOGL: por encima de sus medias y con noticia positiva (acuerdo energ\u00e9tico con AEP). COIN: muy vol\u00e1til (3,7%) y en tendencia de fondo, pero por debajo de su media de 20; vigilar solo si recupera esa media con volumen. Evitar: AMD, AVGO y NVDA, por la correcci\u00f3n fuerte de 5 d\u00edas y el precio bajo la media de 20; NFLX, en tendencia bajista; TSLA y QQQ, sin direcci\u00f3n clara. El dato de inflaci\u00f3n de septiembre sali\u00f3 m\u00e1s alto de lo esperado: riesgo de volatilidad macro."
   },
   "maximos": {
-    "PLTR": 209.23,
-    "META": 767.08,
-    "AMZN": 259.675
+    "AAPL": 346.715,
+    "META": 738.63,
+    "COIN": 172.91
+  },
+  "salidas": {
+    "META": "2026-10-14T13:36:17",
+    "COIN": "2026-10-14T13:58:27",
+    "PLTR": "2026-10-14T15:29:02",
+    "GOOGL": "2026-10-14T16:21:23",
+    "AMZN": "2026-10-14T16:33:30"
   }
 }

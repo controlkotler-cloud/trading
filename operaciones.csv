@@ -2,3 +2,13 @@ fecha,broker,accion,simbolo,cantidad,importe,precio,resultado,orden_id,motivo
 2026-10-13T18:10:28,simulado,comprar,PLTR,1.915571,400.0,208.815,,sim-0f9272ab,rompe máximo de 12 velas (+0.14%) con volumen x1.3
 2026-10-13T18:10:28,simulado,comprar,META,0.52276,400.0,765.17,,sim-ab12ce4f,rompe máximo de 12 velas (+0.11%) con volumen x2.0
 2026-10-13T19:39:01,simulado,comprar,AMZN,1.541262,400.05,259.56,,sim-64f96e36,rompe máximo de 12 velas (+0.05%) con volumen x2.0
+2026-10-14T13:36:17,simulado,vender,META,0.52276,391.81,749.51,-8.19,sim-03858b62,"stop dinámico: 749.51 <= 751.74 (máximo 767.08, -2.0%)"
+2026-10-14T13:38:20,simulado,comprar,AAPL,1.146553,396.65,345.95,,sim-25a48643,rompe máximo de 12 velas (+0.00%) con volumen x3.2
+2026-10-14T13:40:21,simulado,comprar,COIN,2.183511,397.53,182.06,,sim-d0a5a423,rompe máximo de 12 velas (+0.04%) con volumen x1.2
+2026-10-14T13:50:24,simulado,comprar,GOOGL,1.107558,397.58,358.97,,sim-f0e02c0d,rompe máximo de 12 velas (+0.23%) con volumen x1.3
+2026-10-14T13:58:27,simulado,vender,COIN,2.183511,387.64,177.53,-9.89,sim-00583aff,"stop dinámico: 177.53 <= 178.42 (máximo 182.06, -2.0%)"
+2026-10-14T15:29:02,simulado,vender,PLTR,1.915571,392.55,204.925,-7.45,sim-c4ddee50,"stop dinámico: 204.93 <= 205.05 (máximo 209.23, -2.0%)"
+2026-10-14T16:21:23,simulado,vender,GOOGL,1.107558,389.65,351.81,-7.93,sim-51b7ac78,"stop dinámico: 351.81 <= 351.81 (máximo 358.99, -2.0%)"
+2026-10-14T16:33:30,simulado,vender,AMZN,1.541262,392.1,254.4,-7.95,sim-23531be9,"stop dinámico: 254.40 <= 254.48 (máximo 259.68, -2.0%)"
+2026-10-14T19:20:47,simulado,comprar,META,0.5299,391.05,737.97,,sim-1a50549c,rompe máximo de 12 velas (+0.03%) con volumen x1.4
+2026-10-14T19:20:48,simulado,comprar,COIN,2.26361,391.05,172.755,,sim-6d2802ac,rompe máximo de 12 velas (+0.14%) con volumen x2.1
