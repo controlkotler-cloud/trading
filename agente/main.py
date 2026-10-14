@@ -223,6 +223,8 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--bucle", action="store_true", help="momentum: pasadas continuas")
     ap.add_argument("--segundos", type=int, default=60, help="segundos entre pasadas en --bucle")
     ap.add_argument("--hasta-cierre", action="store_true", help="--bucle termina al cerrar el mercado")
+    ap.add_argument("--max-minutos", type=float, default=0,
+                    help="--bucle termina tras estos minutos y crea el archivo 'continuar' si el mercado sigue abierto")
     ap.add_argument("--reactivar", action="store_true", help="quita la parada total")
     ap.add_argument("--reiniciar-simulado", action="store_true", help="vuelve a empezar el broker simulado")
     args = ap.parse_args(argv)
@@ -268,7 +270,8 @@ def main(argv: list[str] | None = None) -> None:
         from agente import operador
 
         if args.bucle:
-            operador.bucle(cfg, crear_broker, diario, args.segundos, args.hasta_cierre)
+            if operador.bucle(cfg, crear_broker, diario, args.segundos, args.hasta_cierre, args.max_minutos):
+                Path("continuar").touch()
         elif args.seleccionar:
             operador.seleccionar(cfg, broker, diario, usar_ia=not args.sin_ia)
         else:  # --operar, --sin-ia o sin opciones: una pasada (los stops nunca usan IA)

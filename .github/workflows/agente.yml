@@ -24,6 +24,7 @@ on:
         default: ""
 
 permissions:
+  actions: write   # para lanzar la segunda parte de la sesión (GitHub corta cada ejecución a las 6 h)
   contents: write  # para guardar el diario en la rama "datos"
   issues: write    # para publicar los resúmenes
 
@@ -35,7 +36,7 @@ concurrency:
 jobs:
   agente:
     runs-on: ubuntu-latest
-    timeout-minutes: 420  # el modo bucle-hasta-cierre puede durar toda la sesión
+    timeout-minutes: 355  # GitHub no permite más de 6 h por ejecución; la sesión dura 6,5 h y se parte en dos
     env:
       PYTHONUNBUFFERED: "1"  # que el registro se vea en directo en Actions
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -100,7 +101,7 @@ jobs:
           case "$ACCION" in
             sin-ia) CMD="agente.main --sin-ia" ;;
             operar) CMD="agente.main --operar" ;;
-            bucle-hasta-cierre) CMD="agente.main --bucle --segundos 120 --hasta-cierre" ;;
+            bucle-hasta-cierre) CMD="agente.main --bucle --segundos 120 --hasta-cierre --max-minutos 330" ;;
             seleccionar) CMD="agente.main --seleccionar" ;;
             estado) CMD="agente.main --estado" ;;
             probar-claude) CMD="agente.main --probar-claude" ;;
@@ -145,3 +146,9 @@ jobs:
           git add -A
           git diff --cached --quiet || git commit --quiet -m "Diario $(date -u +%F)"
           if git rev-parse --verify --quiet HEAD >/dev/null; then git push --quiet origin datos; fi
+
+      - name: Continuar la sesión en otra ejecución (si el mercado sigue abierto)
+        if: always() && hashFiles('continuar') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run agente.yml --ref "${GITHUB_REF_NAME}" -f modo=bucle-hasta-cierre

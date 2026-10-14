@@ -122,3 +122,10 @@ def test_stop_adaptado_guarda_su_distancia(entorno):
     broker.velas_intradia["NVDA"] = ruptura()
     operador.operar(replace(cfg, stop_atr=4), broker, diario)
     assert 1 <= diario.estado["distancias"]["NVDA"] <= 6
+
+
+def test_bucle_para_por_tiempo_con_el_mercado_abierto(entorno):
+    cfg, broker, diario = entorno
+    assert operador.bucle(cfg, lambda c: broker, diario, segundos=0, hasta_cierre=True, max_minutos=1e-9) is True
+    broker.abierto = False
+    assert operador.bucle(cfg, lambda c: broker, diario, segundos=0, hasta_cierre=True) is False

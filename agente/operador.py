@@ -207,16 +207,23 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
         print(f"COMPRA {s} por {importe:.2f} a ~{precio:.2f}: {senal.motivo}")
 
 
-def bucle(cfg: Config, crear_broker, diario: Diario, segundos: int = 60, hasta_cierre: bool = False) -> None:
+def bucle(cfg: Config, crear_broker, diario: Diario, segundos: int = 60, hasta_cierre: bool = False,
+          max_minutos: float = 0) -> bool:
     """Pasadas continuas mientras el mercado está abierto. Para un Mac encendido o un servidor.
 
     hasta_cierre: termina en cuanto el mercado está cerrado (para una ejecución de GitHub Actions).
+    max_minutos: termina tras ese tiempo (GitHub corta a las 6 h y la sesión dura 6,5 h).
+    Devuelve True si paró por tiempo con el mercado aún abierto (hay que lanzar otra ejecución).
     """
     import time
     from datetime import datetime
 
+    inicio = time.monotonic()
     print(f"Operador en marcha: una pasada cada {segundos} s.", flush=True)
     while True:
+        if max_minutos and (time.monotonic() - inicio) / 60 >= max_minutos:
+            print(f"Límite de {max_minutos:.0f} min alcanzado: se continúa en otra ejecución.", flush=True)
+            return True
         broker = crear_broker(cfg)  # nuevo cada vez: datos frescos
         try:
             abierto = broker.mercado_abierto()
@@ -227,7 +234,7 @@ def bucle(cfg: Config, crear_broker, diario: Diario, segundos: int = 60, hasta_c
                 operar(cfg, broker, diario)
             elif hasta_cierre:
                 print("Mercado cerrado: fin del bucle.")
-                return
+                return False
         except Exception as e:  # un fallo puntual de red no debe parar el bucle
             print(f"Error en la pasada: {e}", flush=True)
         time.sleep(segundos)
