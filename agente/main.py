@@ -15,6 +15,7 @@ Modo conservador (MODO=conservador): una decisión al día.
 
 import argparse
 import sys
+from pathlib import Path
 
 from agente import riesgo
 from agente.brokers.base import Broker
