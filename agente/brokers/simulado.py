@@ -101,3 +101,14 @@ class BrokerSimulado(Broker):
         self.estado["efectivo"] += pos["cantidad"] * self.precio(simbolo) - self.comision
         self._guardar()
         return f"sim-{uuid.uuid4().hex[:8]}"
+
+    def vender(self, simbolo: str, cantidad: float) -> str:
+        pos = self.estado["posiciones"].get(simbolo)
+        if pos is None or cantidad > pos["cantidad"] + 1e-9:
+            raise RuntimeError(f"No hay {cantidad} acciones de {simbolo}")
+        pos["cantidad"] -= cantidad
+        if pos["cantidad"] <= 1e-9:
+            self.estado["posiciones"].pop(simbolo)
+        self.estado["efectivo"] += cantidad * self.precio(simbolo) - self.comision
+        self._guardar()
+        return f"sim-{uuid.uuid4().hex[:8]}"

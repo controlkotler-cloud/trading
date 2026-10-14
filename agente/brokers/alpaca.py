@@ -102,6 +102,15 @@ class BrokerAlpaca(Broker):
         for orden in self.trading.get_orders(filter=req):
             self.trading.cancel_order_by_id(orden.id)
 
+    def vender(self, simbolo: str, cantidad: float) -> str:
+        from alpaca.trading.enums import OrderSide, TimeInForce
+        from alpaca.trading.requests import MarketOrderRequest
+
+        self._cancelar_ordenes(simbolo)  # el stop pendiente bloquea las acciones; se vuelve a poner después
+        orden = self.trading.submit_order(MarketOrderRequest(
+            symbol=simbolo, qty=round(cantidad, 6), side=OrderSide.SELL, time_in_force=TimeInForce.DAY))
+        return str(orden.id)
+
     def vender_todo(self, simbolo: str) -> str:
         self._cancelar_ordenes(simbolo)  # una orden stop pendiente bloquearía las acciones
         return str(self.trading.close_position(simbolo).id)

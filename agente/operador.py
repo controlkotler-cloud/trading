@@ -7,10 +7,12 @@
 Cada pasada:
 1. Paradas de seguridad: si el patrimonio cae PARADA_DRAWDOWN_PCT desde su máximo, se vende todo y se
    detiene (hay que reactivarlo a mano). Si hoy se pierde MAX_PERDIDA_DIARIA_PCT, no abre más posiciones hoy.
-2. Stop dinámico de cada posición: guarda el máximo alcanzado y vende si cae TRAILING_PCT desde ahí.
-   El stop se deja también puesto en el broker para que actúe entre pasadas.
+2. Stop dinámico de cada posición: guarda el máximo alcanzado y vende si cae TRAILING_PCT desde ahí
+   (o lo que se mueve normalmente ese valor, con STOP_ATR). El stop se deja también puesto en el broker.
+   Opcional: vende la mitad al ganar PARCIAL_PCT y cierra todo al final del día (CERRAR_AL_CIERRE).
 3. Entradas: si hay hueco, busca rupturas con volumen en los valores vigilados y compra un
    PCT_POR_POSICION del patrimonio actual (reinversión automática de las ganancias).
+   Opcional: solo con el mercado a favor (FILTRO_MERCADO) y fuera de los primeros/últimos minutos.
 """
 
 from agente import momentum
@@ -26,8 +28,17 @@ def _vender(broker: Broker, diario: Diario, p, motivo: str) -> None:
     diario.registrar_operacion(broker.nombre, "vender", p.simbolo, p.valor, p.precio_actual, orden, motivo,
                                resultado=resultado)
     diario.guardar_maximo(p.simbolo, None)
+    for clave in ("distancias", "parciales"):
+        diario.estado.get(clave, {}).pop(p.simbolo, None)
     diario.registrar_salida(p.simbolo)
     print(f"VENTA {p.simbolo}: {motivo} | resultado {resultado:+.2f}")
+
+
+def _sesion_ahora() -> tuple[int, int] | None:
+    """(minutos desde la apertura, minutos hasta el cierre) ahora mismo, en Nueva York."""
+    from datetime import datetime, timezone
+
+    return momentum.minutos_sesion(datetime.now(timezone.utc).isoformat())
 
 
 def seleccionar(cfg: Config, broker: Broker, diario: Diario, usar_ia: bool = True) -> list[str]:
@@ -89,24 +100,49 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
         print("PARADA TOTAL activada.")
         return
 
-    # 2. Stop dinámico de cada posición
+    # 2. Cierre de la sesión: no dormir con posiciones (si está activado)
+    sesion = _sesion_ahora()
+    if cfg.cerrar_al_cierre and sesion and 0 < sesion[1] <= 6 and broker.mercado_abierto():
+        for p in broker.posiciones():
+            _vender(broker, diario, p, "cierre de la sesión: no se duerme con posiciones")
+        print("Fin de la sesión: todo vendido.")
+        return
+
+    # 3. Stop dinámico de cada posición (y venta de la mitad al llegar al objetivo, si está activada)
     for p in broker.posiciones():
         anterior = diario.estado.get("maximos", {}).get(p.simbolo)
+        distancia = diario.estado.get("distancias", {}).get(p.simbolo, cfg.trailing_pct)
         maximo = anterior if anterior is not None else max(p.precio_medio, p.precio_actual)
-        maximo, stop, vender = momentum.actualizar_trailing(maximo, p.precio_actual, cfg.trailing_pct)
+        maximo, stop, vender = momentum.actualizar_trailing(maximo, p.precio_actual, distancia)
         if vender:
             _vender(broker, diario, p, f"stop dinámico: {p.precio_actual:.2f} <= {stop:.2f} "
-                                       f"(máximo {maximo:.2f}, -{cfg.trailing_pct}%)")
+                                       f"(máximo {maximo:.2f}, -{distancia}%)")
             continue
         diario.guardar_maximo(p.simbolo, maximo)
-        if anterior is None or maximo > anterior:  # el stop ha subido: moverlo también en el broker
+        parciales = diario.estado.setdefault("parciales", {})
+        mover_stop = False
+        if cfg.parcial_pct > 0 and not parciales.get(p.simbolo) and p.pnl_pct >= cfg.parcial_pct:
+            mitad = p.cantidad / 2
+            try:
+                orden = broker.vender(p.simbolo, mitad)
+                diario.registrar_operacion(broker.nombre, "vender", p.simbolo, mitad * p.precio_actual, p.precio_actual,
+                                           orden, f"asegura la mitad al {p.pnl_pct:+.1f}%",
+                                           resultado=(p.precio_actual - p.precio_medio) * mitad)
+                parciales[p.simbolo] = True
+                diario._guardar_estado()
+                p.cantidad -= mitad
+                mover_stop = True
+                print(f"VENTA PARCIAL {p.simbolo}: mitad al {p.pnl_pct:+.1f}%")
+            except Exception as e:
+                print(f"Aviso: no se pudo vender la mitad de {p.simbolo}: {e}")
+        if mover_stop or anterior is None or maximo > anterior:  # el stop ha subido: moverlo también en el broker
             try:
                 broker.poner_stop(p.simbolo, p.cantidad, stop)
             except Exception as e:
                 print(f"Aviso: no se pudo dejar el stop de {p.simbolo} en el broker: {e}")
         print(f"  {p.simbolo}: {p.precio_actual:.2f} ({p.pnl_pct:+.1f}%) | máximo {maximo:.2f} | stop {stop:.2f}")
 
-    # 3. Entradas
+    # 4. Entradas
     perdida_hoy = (1 - broker.patrimonio() / inicio) * 100 if inicio else 0
     if perdida_hoy >= cfg.max_perdida_diaria_pct:
         print(f"Pérdida de hoy {perdida_hoy:.1f}% >= {cfg.max_perdida_diaria_pct}%: no se abren más posiciones hoy.")
@@ -114,11 +150,22 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
     if not broker.mercado_abierto():
         print("Mercado cerrado: no se buscan entradas.")
         return
+    if (cfg.evitar_apertura_min or cfg.evitar_cierre_min) and sesion and not momentum.en_horario(*sesion, cfg.evitar_apertura_min, cfg.evitar_cierre_min):
+        print(f"Fuera del horario de compras (primeros {cfg.evitar_apertura_min} min / últimos "
+              f"{cfg.evitar_cierre_min} min): solo se vigilan los stops.")
+        return
     posiciones = broker.posiciones()
     huecos = cfg.max_posiciones - len(posiciones)
     if huecos <= 0:
         print("Sin huecos: todas las posiciones ocupadas.")
         return
+    if cfg.filtro_mercado:
+        try:
+            if not momentum.mercado_favorable(broker.intradia("QQQ", cfg.minutos_vela)):
+                print("Mercado general (QQQ) por debajo de su media: hoy no se compra a contracorriente.")
+                return
+        except Exception as e:
+            print(f"Aviso: sin datos de QQQ para el filtro de mercado: {e}")
 
     vigilar = diario.vigilancia() or seleccionar(cfg, broker, diario, usar_ia=False)
     print(f"Buscando entradas en: {', '.join(vigilar)} ({huecos} huecos libres)")
@@ -153,6 +200,8 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
             print(f"Aviso: no se pudo comprar {s}: {e}")
             continue
         diario.registrar_operacion(broker.nombre, "comprar", s, importe, precio, orden, senal.motivo)
+        if cfg.stop_atr > 0:
+            diario.estado.setdefault("distancias", {})[s] = momentum.distancia_stop(velas, cfg.trailing_pct, cfg.stop_atr)
         diario.guardar_maximo(s, precio)
         huecos -= 1
         print(f"COMPRA {s} por {importe:.2f} a ~{precio:.2f}: {senal.motivo}")

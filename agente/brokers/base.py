@@ -53,6 +53,10 @@ class Broker(ABC):
     def vender_todo(self, simbolo: str) -> str:
         """Cierra la posición entera. Devuelve el id de la orden."""
 
+    def vender(self, simbolo: str, cantidad: float) -> str:
+        """Vende parte de una posición. Devuelve el id de la orden."""
+        raise NotImplementedError
+
     def intradia(self, simbolo: str, minutos: int = 15, dias: int = 5) -> list[Vela]:
         """Velas intradía (por defecto de 15 minutos) de los últimos `dias`."""
         raise NotImplementedError

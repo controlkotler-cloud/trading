@@ -37,6 +37,13 @@ class Config:
     max_perdida_diaria_pct: float = 8.0
     parada_drawdown_pct: float = 40.0
     espera_reentrada_min: int = 60
+    # mejoras "de trader": solo se activan las que aprueba el backtest comparativo
+    filtro_mercado: bool = False
+    stop_atr: float = 0.0
+    evitar_apertura_min: int = 0
+    evitar_cierre_min: int = 0
+    parcial_pct: float = 0.0
+    cerrar_al_cierre: bool = False
     alpaca_paper: bool = True
     carpeta_datos: str = "datos"
 
@@ -77,6 +84,12 @@ def cargar_config() -> Config:
         max_perdida_diaria_pct=num("MAX_PERDIDA_DIARIA_PCT", 8),
         parada_drawdown_pct=num("PARADA_DRAWDOWN_PCT", 40),
         espera_reentrada_min=int(num("ESPERA_REENTRADA_MIN", 60)),
+        filtro_mercado=env.get("FILTRO_MERCADO", "false").lower() == "true",
+        stop_atr=num("STOP_ATR", 0),
+        evitar_apertura_min=int(num("EVITAR_APERTURA_MIN", 0)),
+        evitar_cierre_min=int(num("EVITAR_CIERRE_MIN", 0)),
+        parcial_pct=num("PARCIAL_PCT", 0),
+        cerrar_al_cierre=env.get("CERRAR_AL_CIERRE", "false").lower() == "true",
         alpaca_paper=env.get("ALPACA_PAPER", "true").lower() != "false",
         carpeta_datos=env.get("CARPETA_DATOS", "datos"),
     )

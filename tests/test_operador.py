@@ -81,3 +81,44 @@ def test_perdida_diaria_bloquea_entradas(entorno):
     broker.velas_intradia["NVDA"] = ruptura()
     operador.operar(cfg, broker, diario)
     assert broker.posiciones() == []
+
+
+def test_vende_la_mitad_al_objetivo_y_sigue_con_el_resto(entorno):
+    cfg, broker, diario = entorno
+    cfg = replace(cfg, parcial_pct=3)
+    broker.velas_intradia["NVDA"] = ruptura()
+    operador.operar(cfg, broker, diario)
+    cantidad = broker.posiciones()[0].cantidad
+    entrada = broker.precio("NVDA")
+    broker.velas_intradia["NVDA"] = broker.velas_intradia["NVDA"] + velas([entrada * 1.04])
+    operador.operar(cfg, broker, diario)
+    assert broker.posiciones()[0].cantidad == pytest.approx(cantidad / 2)
+    operador.operar(cfg, broker, diario)  # no vuelve a vender la mitad
+    assert broker.posiciones()[0].cantidad == pytest.approx(cantidad / 2)
+
+
+def test_cierra_todo_al_final_de_la_sesion(entorno, monkeypatch):
+    cfg, broker, diario = entorno
+    broker.velas_intradia["NVDA"] = ruptura()
+    operador.operar(cfg, broker, diario)
+    monkeypatch.setattr(operador, "_sesion_ahora", lambda: (387, 3))
+    operador.operar(replace(cfg, cerrar_al_cierre=True), broker, diario)
+    assert broker.posiciones() == []
+
+
+def test_horario_y_filtro_de_mercado_bloquean_compras(entorno, monkeypatch):
+    cfg, broker, diario = entorno
+    broker.velas_intradia["NVDA"] = ruptura()
+    monkeypatch.setattr(operador, "_sesion_ahora", lambda: (5, 385))  # 9:35
+    operador.operar(replace(cfg, evitar_apertura_min=15), broker, diario)
+    assert broker.posiciones() == []
+    broker.velas_intradia["QQQ"] = velas(list(range(160, 100, -1)))  # mercado cayendo
+    operador.operar(replace(cfg, filtro_mercado=True), broker, diario)
+    assert broker.posiciones() == []
+
+
+def test_stop_adaptado_guarda_su_distancia(entorno):
+    cfg, broker, diario = entorno
+    broker.velas_intradia["NVDA"] = ruptura()
+    operador.operar(replace(cfg, stop_atr=4), broker, diario)
+    assert 1 <= diario.estado["distancias"]["NVDA"] <= 6

@@ -85,7 +85,8 @@ def diario_md(cfg: Config, broker: Broker, diario: Diario, hoy: date | None = No
     lineas += ["", "Posiciones abiertas:" if posiciones else "Sin posiciones abiertas."]
     for p in posiciones:
         maximo = diario.estado.get("maximos", {}).get(p.simbolo)
-        stop = f" · stop {maximo * (1 - cfg.trailing_pct / 100):.2f}" if maximo else ""
+        distancia = diario.estado.get("distancias", {}).get(p.simbolo, cfg.trailing_pct)
+        stop = f" · stop {maximo * (1 - distancia / 100):.2f}" if maximo else ""
         lineas.append(f"- **{p.simbolo}** {p.valor:,.2f} ({p.pnl_pct:+.1f}%){stop}")
     lineas += ["", f"Vigilando: {', '.join(diario.vigilancia()) or '-'} · Gasto en Claude este mes: "
                    f"{diario.gasto_ia_mes():.2f} $"]

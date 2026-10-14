@@ -60,6 +60,14 @@ jobs:
       BARRAS_RUPTURA: ${{ vars.BARRAS_RUPTURA || '12' }}
       VOLUMEN_MINIMO: ${{ vars.VOLUMEN_MINIMO || '1.2' }}
       CAPITAL_SIMULADO: ${{ vars.CAPITAL_SIMULADO || '2000' }}
+      # Mejoras "de trader": solo las que aprobó el backtest comparativo (85 sesiones, las dos mitades).
+      # Filtro de mercado: +9,9 % frente a +3,0 % sin él. Las demás empeoraban el resultado.
+      FILTRO_MERCADO: ${{ vars.FILTRO_MERCADO || 'true' }}
+      STOP_ATR: ${{ vars.STOP_ATR || '0' }}
+      EVITAR_APERTURA_MIN: ${{ vars.EVITAR_APERTURA_MIN || '0' }}
+      EVITAR_CIERRE_MIN: ${{ vars.EVITAR_CIERRE_MIN || '0' }}
+      PARCIAL_PCT: ${{ vars.PARCIAL_PCT || '0' }}
+      CERRAR_AL_CIERRE: ${{ vars.CERRAR_AL_CIERRE || 'false' }}
     steps:
       - uses: actions/checkout@v5
 
