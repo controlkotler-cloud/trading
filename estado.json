@@ -1,7 +1,7 @@
 {
   "patrimonio_inicio_dia": 1955.2068820911431,
   "gasto_ia": {
-    "2026-10": 0.119092
+    "2026-10": 0.145992
   },
   "dia": "2026-10-15",
   "pico_patrimonio": 2000.6668859339409,
@@ -11,25 +11,24 @@
     "referencia": 777.96
   },
   "vigilancia": {
-    "dia": "2026-10-14",
+    "dia": "2026-10-15",
     "simbolos": [
+      "MSFT",
       "PLTR",
       "META",
-      "MSFT",
-      "AAPL",
-      "GOOGL",
-      "COIN"
+      "AAPL"
     ],
-    "motivo": "PLTR: tendencia m\u00e1s fuerte (+17,7% en 20 d\u00edas, precio sobre las medias de 20 y 50, a un 3,6% del m\u00e1ximo de 60 d\u00edas). Ojo con el RSI de 69,6, cerca de sobrecompra. META: impulso s\u00f3lido (+3,9% en 5 d\u00edas, +11,3% en 20), alta volatilidad (3,5%) y catalizador claro: Guggenheim eleva el precio objetivo a 850 $. MSFT: fuerte subida en 20 d\u00edas (+10,9%) y cerca de m\u00e1ximos, pero con RSI de 71 (sobrecompra); solo entrar con ruptura confirmada por volumen. AAPL: a menos de un 1% del m\u00e1ximo de 60 d\u00edas, candidata a ruptura, aunque con volatilidad baja y un litigio con OpenAI como riesgo. GOOGL: por encima de sus medias y con noticia positiva (acuerdo energ\u00e9tico con AEP). COIN: muy vol\u00e1til (3,7%) y en tendencia de fondo, pero por debajo de su media de 20; vigilar solo si recupera esa media con volumen. Evitar: AMD, AVGO y NVDA, por la correcci\u00f3n fuerte de 5 d\u00edas y el precio bajo la media de 20; NFLX, en tendencia bajista; TSLA y QQQ, sin direcci\u00f3n clara. El dato de inflaci\u00f3n de septiembre sali\u00f3 m\u00e1s alto de lo esperado: riesgo de volatilidad macro."
+    "motivo": "MSFT: tendencia alcista clara (+7,1% en 20 d\u00edas, precio sobre MM20 y MM50, RSI 62) y cerca del m\u00e1ximo de 60 d\u00edas; volatilidad algo baja. PLTR: +10,9% en 20 d\u00edas, sobre sus medias y con catalizadores (acuerdos con Customers Bancorp y Surf Air); ojo a las ventas de Ark. META: volatilidad alta (3,6%), muy por encima de la MM50 y Goldman mantiene Compra con objetivo de 860 $; vigilar que recupere la MM20 (732). AAPL: cerca del m\u00e1ximo de 60 d\u00edas (348,15), posible ruptura con catalizador de Apple Intelligence en China, aunque su volatilidad es baja (1,04%). Evitar: los semiconductores (NVDA, AMD, AVGO) en ca\u00edda por debajo de la MM20, con SOXX bajando 7 d\u00edas seguidos tras un IPC alto; COIN bajista; TSLA con resultados del 3T inminentes (riesgo de salto) y reiteraci\u00f3n de Venta; QQQ d\u00e9bil, y AMZN, GOOGL, NFLX y SPY sin direcci\u00f3n."
   },
   "maximos": {
-    "AAPL": 346.715,
-    "META": 738.63,
-    "COIN": 172.91
+    "AAPL": 347.255,
+    "MSFT": 540.69,
+    "PLTR": 200.13,
+    "META": 740.7
   },
   "salidas": {
-    "META": "2026-10-14T13:36:17",
-    "COIN": "2026-10-14T13:58:27",
+    "META": "2026-10-15T13:32:48",
+    "COIN": "2026-10-15T13:32:48",
     "PLTR": "2026-10-14T15:29:02",
     "GOOGL": "2026-10-14T16:21:23",
     "AMZN": "2026-10-14T16:33:30"

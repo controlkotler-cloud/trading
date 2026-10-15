@@ -12,3 +12,8 @@ fecha,broker,accion,simbolo,cantidad,importe,precio,resultado,orden_id,motivo
 2026-10-14T16:33:30,simulado,vender,AMZN,1.541262,392.1,254.4,-7.95,sim-23531be9,"stop dinámico: 254.40 <= 254.48 (máximo 259.68, -2.0%)"
 2026-10-14T19:20:47,simulado,comprar,META,0.5299,391.05,737.97,,sim-1a50549c,rompe máximo de 12 velas (+0.03%) con volumen x1.4
 2026-10-14T19:20:48,simulado,comprar,COIN,2.26361,391.05,172.755,,sim-6d2802ac,rompe máximo de 12 velas (+0.14%) con volumen x2.1
+2026-10-15T13:32:48,simulado,vender,META,0.5299,381.32,719.6,-9.73,sim-58f6eefc,"stop dinámico: 719.60 <= 723.86 (máximo 738.63, -2.0%)"
+2026-10-15T13:32:48,simulado,vender,COIN,2.26361,376.17,166.18,-14.88,sim-b3f03f5a,"stop dinámico: 166.18 <= 169.45 (máximo 172.91, -2.0%)"
+2026-10-15T15:09:01,simulado,comprar,MSFT,0.718006,386.56,538.38,,sim-7fa57f18,rompe máximo de 12 velas (+0.16%) con volumen x1.3
+2026-10-15T18:30:18,simulado,comprar,PLTR,1.932507,385.97,199.725,,sim-3f6cb3ed,rompe máximo de 12 velas (+0.03%) con volumen x1.8
+2026-10-15T18:40:24,simulado,comprar,META,0.522012,386.19,739.81,,sim-a03712a7,rompe máximo de 12 velas (+0.01%) con volumen x1.5
