@@ -240,7 +240,6 @@ def main(argv: list[str] | None = None) -> None:
         print("⚠️  MODO DINERO REAL (Alpaca)")
     diario = Diario(cfg.carpeta_datos)
     if args.reiniciar_simulado:
-        from pathlib import Path
 
         from datetime import datetime
 
