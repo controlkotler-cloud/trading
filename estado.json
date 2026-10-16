@@ -1,9 +1,9 @@
 {
-  "patrimonio_inicio_dia": 1955.2068820911431,
+  "patrimonio_inicio_dia": 1940.135444376941,
   "gasto_ia": {
-    "2026-10": 0.145992
+    "2026-10": 0.17668
   },
-  "dia": "2026-10-15",
+  "dia": "2026-10-16",
   "pico_patrimonio": 2000.6668859339409,
   "inicio": {
     "fecha": "2026-10-13",
@@ -11,27 +11,26 @@
     "referencia": 777.96
   },
   "vigilancia": {
-    "dia": "2026-10-15",
+    "dia": "2026-10-16",
     "simbolos": [
+      "AAPL",
       "MSFT",
       "PLTR",
       "META",
-      "AAPL"
+      "TSLA"
     ],
-    "motivo": "MSFT: tendencia alcista clara (+7,1% en 20 d\u00edas, precio sobre MM20 y MM50, RSI 62) y cerca del m\u00e1ximo de 60 d\u00edas; volatilidad algo baja. PLTR: +10,9% en 20 d\u00edas, sobre sus medias y con catalizadores (acuerdos con Customers Bancorp y Surf Air); ojo a las ventas de Ark. META: volatilidad alta (3,6%), muy por encima de la MM50 y Goldman mantiene Compra con objetivo de 860 $; vigilar que recupere la MM20 (732). AAPL: cerca del m\u00e1ximo de 60 d\u00edas (348,15), posible ruptura con catalizador de Apple Intelligence en China, aunque su volatilidad es baja (1,04%). Evitar: los semiconductores (NVDA, AMD, AVGO) en ca\u00edda por debajo de la MM20, con SOXX bajando 7 d\u00edas seguidos tras un IPC alto; COIN bajista; TSLA con resultados del 3T inminentes (riesgo de salto) y reiteraci\u00f3n de Venta; QQQ d\u00e9bil, y AMZN, GOOGL, NFLX y SPY sin direcci\u00f3n."
+    "motivo": "AAPL: ruptura de m\u00e1ximos de 60 d\u00edas, RSI 65.6 y por encima de sus medias 20 y 50. El catalizador es claro: r\u00e9cord hist\u00f3rico, preventas del iPhone agotadas y alianza de IA con Meta. Su volatilidad es baja (1.07%), lo que limita el recorrido intrad\u00eda. MSFT: +9.85% en 20 d\u00edas, sobre sus medias y cerca del m\u00e1ximo de 551; una ruptura de ese nivel con volumen ser\u00eda la se\u00f1al. PLTR: l\u00edder del ranking (+14.6% en 20 d\u00edas, RSI 65) cerca del m\u00e1ximo de 212.9; el retroceso de 5 d\u00edas y el recorte de Ark piden confirmaci\u00f3n. META: tendencia de 20 d\u00edas fuerte y la mayor volatilidad del grupo (3.49%), pero cotiza justo bajo su media de 20; vigilar si recupera ~737. TSLA: especulativa, con catalizador del Roadster redise\u00f1ado y volatilidad alta, pero cotiza bajo su media de 20 y cae 4.3% en 5 d\u00edas; solo vale si confirma una ruptura. Evitar: NVDA, AMD, AVGO y QQQ est\u00e1n en ca\u00edda bajo su media de 20, con RSI d\u00e9bil. AMZN, NFLX y GOOGL no tienen direcci\u00f3n clara, y NFLX y AMZN est\u00e1n adem\u00e1s bajo su media de 50. COIN est\u00e1 bajo su media de 20 tras -7% en 20 d\u00edas. SPY tiene volatilidad insuficiente para operar intrad\u00eda."
   },
   "maximos": {
-    "AAPL": 347.255,
-    "MSFT": 540.69,
-    "PLTR": 200.49,
-    "META": 740.7
+    "AAPL": 347.3
   },
   "salidas": {
-    "META": "2026-10-15T13:32:48",
+    "META": "2026-10-16T14:11:07",
     "COIN": "2026-10-15T13:32:48",
-    "PLTR": "2026-10-14T15:29:02",
+    "PLTR": "2026-10-16T13:40:58",
     "GOOGL": "2026-10-14T16:21:23",
-    "AMZN": "2026-10-14T16:33:30"
+    "AMZN": "2026-10-14T16:33:30",
+    "MSFT": "2026-10-16T15:23:35"
   },
   "parciales": {}
 }

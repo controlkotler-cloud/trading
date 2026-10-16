@@ -1,21 +1,9 @@
 {
-  "efectivo": 378.60018814765164,
+  "efectivo": 1517.8264534448058,
   "posiciones": {
     "AAPL": {
       "cantidad": 1.1465529700823818,
       "precio_medio": 345.95
-    },
-    "MSFT": {
-      "cantidad": 0.7180058694602326,
-      "precio_medio": 538.38
-    },
-    "PLTR": {
-      "cantidad": 1.9325071973964203,
-      "precio_medio": 199.725
-    },
-    "META": {
-      "cantidad": 0.5220124085913951,
-      "precio_medio": 739.81
     }
   }
 }
