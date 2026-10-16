@@ -20,3 +20,6 @@ fecha,broker,accion,simbolo,cantidad,importe,precio,resultado,orden_id,motivo
 2026-10-16T13:40:58,simulado,vender,PLTR,1.932507,379.64,196.45,-6.33,sim-1ed29e65,"stop dinámico: 196.45 <= 198.80 (máximo 202.85, -2.0%)"
 2026-10-16T14:11:07,simulado,vender,META,0.522012,378.75,725.56,-7.44,sim-82ad4c8f,"stop dinámico: 725.56 <= 725.89 (máximo 740.70, -2.0%)"
 2026-10-16T15:23:35,simulado,vender,MSFT,0.718006,380.83,530.405,-5.73,sim-03144a3d,"stop dinámico: 530.40 <= 531.44 (máximo 542.29, -2.0%)"
+2026-10-16T19:57:04,simulado,comprar,MSFT,0.722272,382.32,529.33,,sim-f83bd0db,rompe máximo de 12 velas (+0.04%) con volumen x1.6
+2026-10-16T19:57:05,simulado,comprar,META,0.539391,382.32,708.8,,sim-873b97e5,rompe máximo de 12 velas (+0.26%) con volumen x2.3
+2026-10-16T19:57:06,simulado,comprar,TSLA,1.077231,382.32,354.91,,sim-5c5949f2,rompe máximo de 12 velas (+0.01%) con volumen x5.8

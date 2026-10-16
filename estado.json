@@ -22,7 +22,10 @@
     "motivo": "AAPL: ruptura de m\u00e1ximos de 60 d\u00edas, RSI 65.6 y por encima de sus medias 20 y 50. El catalizador es claro: r\u00e9cord hist\u00f3rico, preventas del iPhone agotadas y alianza de IA con Meta. Su volatilidad es baja (1.07%), lo que limita el recorrido intrad\u00eda. MSFT: +9.85% en 20 d\u00edas, sobre sus medias y cerca del m\u00e1ximo de 551; una ruptura de ese nivel con volumen ser\u00eda la se\u00f1al. PLTR: l\u00edder del ranking (+14.6% en 20 d\u00edas, RSI 65) cerca del m\u00e1ximo de 212.9; el retroceso de 5 d\u00edas y el recorte de Ark piden confirmaci\u00f3n. META: tendencia de 20 d\u00edas fuerte y la mayor volatilidad del grupo (3.49%), pero cotiza justo bajo su media de 20; vigilar si recupera ~737. TSLA: especulativa, con catalizador del Roadster redise\u00f1ado y volatilidad alta, pero cotiza bajo su media de 20 y cae 4.3% en 5 d\u00edas; solo vale si confirma una ruptura. Evitar: NVDA, AMD, AVGO y QQQ est\u00e1n en ca\u00edda bajo su media de 20, con RSI d\u00e9bil. AMZN, NFLX y GOOGL no tienen direcci\u00f3n clara, y NFLX y AMZN est\u00e1n adem\u00e1s bajo su media de 50. COIN est\u00e1 bajo su media de 20 tras -7% en 20 d\u00edas. SPY tiene volatilidad insuficiente para operar intrad\u00eda."
   },
   "maximos": {
-    "AAPL": 347.3
+    "AAPL": 347.3,
+    "MSFT": 529.33,
+    "META": 709.78,
+    "TSLA": 354.91
   },
   "salidas": {
     "META": "2026-10-16T14:11:07",
