@@ -53,8 +53,10 @@ class Resultado:
         return 100 * sum(r > 0 for r in self.operaciones) / len(self.operaciones) if self.operaciones else 0.0
 
 
-def simular(series: dict[str, list[Vela]], p: Parametros, referencia: list[Vela] | None = None) -> Resultado:
-    """referencia: velas del mercado general (QQQ) para el filtro de mercado."""
+def simular(series: dict[str, list[Vela]], p: Parametros, referencia: list[Vela] | None = None,
+            desde: str | None = None) -> Resultado:
+    """referencia: velas del mercado general (QQQ) para el filtro de mercado.
+    desde: no abre posiciones antes de esa fecha (las velas anteriores solo sirven de historia)."""
     coste = p.coste_pct / 100
     efectivo = p.capital
     pos: dict[str, dict] = {}         # simbolo -> {cantidad, entrada, maximo, distancia, parcial}
@@ -116,6 +118,8 @@ def simular(series: dict[str, list[Vela]], p: Parametros, referencia: list[Vela]
             # 4. señal al cierre de la vela -> compra en la siguiente
             if s in pos or len(pos) + len(pendientes) >= p.max_posiciones:
                 continue
+            if desde and _utc(t) < _utc(desde):
+                continue
             if p.filtro_mercado and not favorable:
                 continue
             if sesion is not None and not momentum.en_horario(*sesion, p.evitar_apertura_min, p.evitar_cierre_min):
@@ -137,8 +141,16 @@ def simular(series: dict[str, list[Vela]], p: Parametros, referencia: list[Vela]
         pico = max(pico, c)
         max_caida = max(max_caida, (pico - c) / pico * 100)
     referencia_pct = sum(velas[-1].cierre / velas[0].apertura - 1 for velas in series.values()) / len(series) * 100
-    dias = len({t[:10] for t in tiempos}) or 1
+    dias = len({t[:10] for t in tiempos if not desde or _utc(t) >= _utc(desde)}) or 1
     return Resultado((final / p.capital - 1) * 100, referencia_pct, max_caida, ops, curva, dias)
+
+
+def _utc(fecha: str):
+    """Fecha de una vela o de una operación, en UTC (las operaciones se guardan en UTC sin zona)."""
+    from datetime import datetime, timezone
+
+    t = datetime.fromisoformat(fecha)
+    return t.replace(tzinfo=timezone.utc) if t.tzinfo is None else t.astimezone(timezone.utc)
 
 
 def descargar(simbolos: list[str], dias: int, minutos: int = 15) -> dict[str, list[Vela]]:
