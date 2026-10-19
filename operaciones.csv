@@ -23,3 +23,5 @@ fecha,broker,accion,simbolo,cantidad,importe,precio,resultado,orden_id,motivo
 2026-10-16T19:57:04,simulado,comprar,MSFT,0.722272,382.32,529.33,,sim-f83bd0db,rompe máximo de 12 velas (+0.04%) con volumen x1.6
 2026-10-16T19:57:05,simulado,comprar,META,0.539391,382.32,708.8,,sim-873b97e5,rompe máximo de 12 velas (+0.26%) con volumen x2.3
 2026-10-16T19:57:06,simulado,comprar,TSLA,1.077231,382.32,354.91,,sim-5c5949f2,rompe máximo de 12 velas (+0.01%) con volumen x5.8
+2026-10-19T14:04:51,simulado,vender,META,0.539391,374.82,694.9,-7.5,sim-269817a7,"stop dinámico: 694.90 <= 695.58 (máximo 709.78, -2.0%)"
+2026-10-19T18:48:18,simulado,comprar,META,0.54496,384.3,705.19,,sim-1db2ab96,rompe máximo de 12 velas (+0.08%) con volumen x1.8

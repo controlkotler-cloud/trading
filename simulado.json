@@ -1,5 +1,5 @@
 {
-  "efectivo": 370.8664534448059,
+  "efectivo": 361.38892522810164,
   "posiciones": {
     "AAPL": {
       "cantidad": 1.1465529700823818,
@@ -9,13 +9,13 @@
       "cantidad": 0.7222715508284057,
       "precio_medio": 529.33
     },
-    "META": {
-      "cantidad": 0.5393905191873589,
-      "precio_medio": 708.8
-    },
     "TSLA": {
       "cantidad": 1.077230847257051,
       "precio_medio": 354.91
+    },
+    "META": {
+      "cantidad": 0.5449595144570967,
+      "precio_medio": 705.19
     }
   }
 }
