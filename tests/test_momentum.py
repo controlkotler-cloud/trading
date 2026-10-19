@@ -67,3 +67,12 @@ def test_mercado_favorable():
     sube = [Vela("t", c, c, c, c, 1) for c in range(100, 160)]
     baja = [Vela("t", c, c, c, c, 1) for c in range(160, 100, -1)]
     assert momentum.mercado_favorable(sube) and not momentum.mercado_favorable(baja)
+
+
+def test_velas_cerradas_quita_la_vela_en_curso():
+    from datetime import datetime, timezone
+    ahora = datetime(2026, 10, 14, 13, 47, tzinfo=timezone.utc)
+    v = [Vela("2026-10-14T13:40:00+00:00", 1, 1, 1, 1, 1), Vela("2026-10-14T13:45:00+00:00", 1, 1, 1, 1, 1)]
+    assert len(momentum.velas_cerradas(v, 5, ahora)) == 1          # la de 13:45 acaba a las 13:50
+    assert len(momentum.velas_cerradas(v, 5, ahora.replace(minute=50))) == 2
+    assert len(momentum.velas_cerradas(velas([1, 2]), 5, ahora)) == 2  # fechas sin hora: no toca nada

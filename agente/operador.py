@@ -180,7 +180,7 @@ def operar(cfg: Config, broker: Broker, diario: Diario) -> None:
             print(f"  {s}: vendido hace {espera:.0f} min, espera {cfg.espera_reentrada_min} min")
             continue
         try:
-            velas = broker.intradia(s, cfg.minutos_vela)
+            velas = momentum.velas_cerradas(broker.intradia(s, cfg.minutos_vela), cfg.minutos_vela)
         except Exception as e:
             print(f"Aviso: sin datos intradía de {s}: {e}")
             continue

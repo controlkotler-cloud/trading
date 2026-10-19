@@ -122,3 +122,22 @@ def mercado_favorable(velas_referencia: list[Vela]) -> bool:
         return True  # sin datos no se bloquea
     cierres = [v.cierre for v in velas_referencia[-60:]]
     return cierres[-1] > ema(cierres, 20)
+
+
+def velas_cerradas(velas: list[Vela], minutos: int, ahora=None) -> list[Vela]:
+    """Quita la última vela si todavía se está formando (el backtest solo decide con velas cerradas).
+
+    Una vela a medio formar puede "romper" un máximo que luego no se mantiene al cierre de la vela.
+    """
+    from datetime import datetime, timedelta, timezone
+
+    if not velas:
+        return velas
+    ahora = ahora or datetime.now(timezone.utc)
+    try:
+        inicio = datetime.fromisoformat(velas[-1].fecha)
+    except ValueError:
+        return velas
+    if inicio.tzinfo is None:
+        inicio = inicio.replace(tzinfo=timezone.utc)
+    return velas[:-1] if inicio + timedelta(minutes=minutos) > ahora else velas
