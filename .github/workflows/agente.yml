@@ -16,7 +16,7 @@ on:
       modo:
         description: "Qué ejecutar"
         type: choice
-        options: [operar, bucle-hasta-cierre, seleccionar, estado, resumen-diario, resumen-semanal, backtest-momentum, auditoria, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
+        options: [operar, bucle-hasta-cierre, seleccionar, estado, resumen-diario, resumen-semanal, backtest-momentum, auditoria, laboratorio, probar-claude, reiniciar-simulado, reactivar, completo, sin-ia]
         default: operar
       parametros:
         description: "Opciones extra para backtest-momentum (p. ej. --comparar --dias 120)"
@@ -30,7 +30,7 @@ permissions:
 
 concurrency:
   # nunca dos ejecuciones del agente a la vez; los backtests van aparte (no tocan el diario)
-  group: ${{ (inputs.modo == 'backtest-momentum' || inputs.modo == 'auditoria') && 'backtest' || 'agente' }}
+  group: ${{ (inputs.modo == 'backtest-momentum' || inputs.modo == 'auditoria' || inputs.modo == 'laboratorio') && 'backtest' || 'agente' }}
   cancel-in-progress: false
 
 jobs:
@@ -108,6 +108,7 @@ jobs:
             reiniciar-simulado) CMD="agente.main --reiniciar-simulado" ;;
             reactivar) CMD="agente.main --reactivar" ;;
             backtest-momentum) CMD="agente.backtest_momentum ${{ inputs.parametros }}" ;;
+            laboratorio) CMD="agente.laboratorio ${{ inputs.parametros }}" ;;
             auditoria) CMD="agente.auditoria datos/operaciones.csv datos/decisiones.jsonl" ;;
             resumen-diario|resumen-semanal) CMD="agente.main --estado" ;;
             *) CMD="agente.main" ;;
@@ -139,7 +140,7 @@ jobs:
           gh issue comment "$NUM" --body-file resumen.md
 
       - name: Guardar el diario
-        if: always() && inputs.modo != 'backtest-momentum' && inputs.modo != 'auditoria'
+        if: always() && inputs.modo != 'backtest-momentum' && inputs.modo != 'auditoria' && inputs.modo != 'laboratorio'
         run: |
           cd datos
           git config user.name "agente-trading"
