@@ -81,19 +81,19 @@ def rotacion_impulso(top: int = 5, meses: int = 6, filtro: bool = True):
     return estrategia
 
 
-def tendencia(maximo: int = 10):
+def tendencia(maximo: int = 10, larga: int = 200, corta: int = 50, cada: int = 5):
     """Cada semana: dentro de los valores con precio > media de 200 y media de 50 > media de 200
     (tendencia sana), hasta `maximo` a partes iguales, los de más impulso de 3 meses primero."""
 
     def estrategia(ctx: Contexto, i: int):
-        if i % 5:
+        if i % cada:
             return None
         candidatos = []
         for s in ctx.cierres:
             if s == MERCADO:
                 continue
-            v = ctx.serie(s, i, 200)
-            if v is not None and v[-1] > _media(v) and _media(v[-50:]) > _media(v):
+            v = ctx.serie(s, i, max(larga, 64))
+            if v is not None and v[-1] > _media(v[-larga:]) and _media(v[-corta:]) > _media(v[-larga:]):
                 candidatos.append((v[-1] / v[-63] - 1, s))
         elegidos = [s for _, s in sorted(candidatos, reverse=True)[:maximo]]
         return {s: 1 / maximo for s in elegidos}
@@ -330,15 +330,59 @@ def informe(datos: dict[str, list[Vela]], coste_pct: float) -> str:
     return "\n".join(lineas)
 
 
+def robustez(datos: dict[str, list[Vela]], coste_pct: float, subconjuntos: int = 30, tamano: int = 25) -> str:
+    """¿La estrategia de tendencia gana por algo real o por suerte con estos valores y estos ajustes?
+
+    1. Sensibilidad: se cambian los ajustes. Si solo funciona con uno concreto, es casualidad.
+    2. Universos al azar: se repite con grupos aleatorios de valores y se compara con comprar ese mismo
+       grupo a partes iguales. Así el sesgo de supervivencia afecta igual a los dos lados.
+    """
+    import random
+
+    base = simular(datos, comprar_y_mantener(), "ref", coste_pct)
+    lineas = ["\nROBUSTEZ de 'Tendencia semanal'", "",
+              f"Referencia (universo a partes iguales): {base.cagr:+.1f}% anual, caída máx {base.max_caida:.1f}%", "",
+              f"{'Variante':<44}{'Anual':>8}{'1ª mitad':>10}{'2ª mitad':>10}{'Caída máx':>11}{'Sharpe':>8}"]
+    variantes = [("10 valores, medias 200/50, semanal", {}),
+                 ("5 valores", {"maximo": 5}), ("15 valores", {"maximo": 15}), ("20 valores", {"maximo": 20}),
+                 ("medias 150/50", {"larga": 150}), ("medias 100/30", {"larga": 100, "corta": 30}),
+                 ("revisión cada 2 semanas", {"cada": 10}), ("revisión mensual", {"cada": 21}),
+                 ("coste 0,3 % por operación", {"_coste": 0.3})]
+    for nombre, kw in variantes:
+        kw = dict(kw)
+        coste = kw.pop("_coste", coste_pct)
+        r = simular(datos, tendencia(**kw), nombre, coste)
+        m1, m2 = r.mitades()
+        lineas.append(f"{nombre:<44}{r.cagr:>+7.1f}%{m1:>+9.1f}%{m2:>+9.1f}%{r.max_caida:>10.1f}%{r.sharpe:>8.2f}")
+    rnd = random.Random(7)
+    acciones = [s for s in datos if s != MERCADO]
+    ventajas, menos_caida = [], 0
+    for _ in range(subconjuntos):
+        grupo = rnd.sample(acciones, min(tamano, len(acciones)))
+        sub = {s: datos[s] for s in grupo + [MERCADO]}
+        t = simular(sub, tendencia(), "t", coste_pct)
+        e = simular(sub, comprar_y_mantener(), "e", coste_pct)
+        ventajas.append(t.cagr - e.cagr)
+        menos_caida += t.max_caida < e.max_caida
+    ventajas.sort()
+    gana = sum(v > 0 for v in ventajas)
+    lineas += ["", f"Universos al azar ({subconjuntos} grupos de {tamano} valores): la tendencia gana a comprar el mismo "
+                   f"grupo a partes iguales en {gana} de {subconjuntos}",
+               f"Ventaja anual mediana {ventajas[len(ventajas) // 2]:+.1f} puntos (peor {ventajas[0]:+.1f}, "
+               f"mejor {ventajas[-1]:+.1f}); con menos caída máxima en {menos_caida} de {subconjuntos}"]
+    return "\n".join(lineas)
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description="Laboratorio de estrategias de varios días")
     ap.add_argument("--anios", type=int, default=8)
     ap.add_argument("--coste", type=float, default=0.1)
+    ap.add_argument("--robustez", action="store_true", help="pone a prueba la estrategia de tendencia")
     args = ap.parse_args(argv)
     datos = descargar(UNIVERSO + [MERCADO], args.anios)
     if MERCADO not in datos:
         raise SystemExit("Sin datos del mercado (SPY).")
-    print(informe(datos, args.coste))
+    print(robustez(datos, args.coste) if args.robustez else informe(datos, args.coste))
 
 
 if __name__ == "__main__":

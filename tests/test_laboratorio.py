@@ -43,3 +43,7 @@ def test_estrategias_no_rompen_e_informe(datos):
         r = lab.simular(datos, crear(), "x")
         assert min(r.curva) > 0
     assert "Rentabilidad por año" in lab.informe(datos, 0.1)
+
+
+def test_robustez(datos):
+    assert "Universos al azar" in lab.robustez(datos, 0.1, subconjuntos=3, tamano=2)
