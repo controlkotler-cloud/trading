@@ -1,7 +1,7 @@
 {
   "patrimonio_inicio_dia": 1920.4782438967343,
   "gasto_ia": {
-    "2026-10": 0.286616
+    "2026-10": 0.314588
   },
   "dia": "2026-10-20",
   "pico_patrimonio": 2000.6668859339409,
@@ -11,28 +11,26 @@
     "referencia": 777.96
   },
   "vigilancia": {
-    "dia": "2026-10-19",
+    "dia": "2026-10-20",
     "simbolos": [
+      "AMZN",
       "MSFT",
-      "AAPL",
-      "PLTR",
-      "META"
+      "AAPL"
     ],
-    "motivo": "El mercado est\u00e1 d\u00e9bil: QQQ cae un 3,6% en 5 d\u00edas y est\u00e1 bajo sus medias, y el \u00edndice Fear & Greed marca 'miedo extremo'. Por eso la selecci\u00f3n es corta. MSFT es el m\u00e1s s\u00f3lido: precio sobre las medias de 20 y 50 d\u00edas, +5,7% en 20 d\u00edas, RSI de 58 y catalizador por la ampliaci\u00f3n de Project Perception y previsiones alcistas de analistas, aunque su volatilidad es moderada. AAPL est\u00e1 sobre sus medias con RSI de 59, cerca de su m\u00e1ximo de 60 d\u00edas (348) y con titular positivo sobre aranceles, pero su volatilidad es baja (1%). PLTR tiene volatilidad alta, est\u00e1 sobre la media de 50 d\u00edas y cuenta con la nueva alianza con Knox Systems; tras caer un 9,6% en 5 d\u00edas, solo conviene si recupera la media de 20 d\u00edas con volumen. META est\u00e1 sobre la media de 50 d\u00edas y es vol\u00e1til, pero tiene resultados inminentes (riesgo de salto), as\u00ed que tama\u00f1o reducido. Evitar: AMD, AVGO, NVDA, COIN y NFLX por ca\u00edda clara y precio bajo la media de 20 d\u00edas (AVGO y NFLX tambi\u00e9n bajo la de 50). TSLA por ca\u00edda semanal y resultados pr\u00f3ximos. GOOGL por falta de direcci\u00f3n y recorte del precio objetivo."
+    "motivo": "El mercado est\u00e1 d\u00e9bil: QQQ cae un 4% en 5 d\u00edas y SPY est\u00e1 por debajo de sus medias. AMZN es el m\u00e1s limpio: precio sobre las medias de 20 y 50, RSI de 57, +3,1% en 20 d\u00edas y catalizadores positivos (inversi\u00f3n de 18.000 M$ en Alemania y expansi\u00f3n de AWS, 300.000 contrataciones). MSFT mantiene una tendencia de fondo fuerte (+7,2% en 20 d\u00edas, sobre ambas medias, a un 3% del m\u00e1ximo de 60 d\u00edas), pero tiene resultados pr\u00f3ximos y hay temor a la deuda de la IA; conviene ir con cautela. AAPL est\u00e1 cerca de m\u00e1ximos (348) con un RSI de 60, aunque su volatilidad es baja (1%) y acaba de recibir una rebaja de recomendaci\u00f3n; solo interesa si rompe 348 con volumen. Evitar NVDA, AMD, AVGO, COIN y GOOGL, que caen y cotizan bajo sus medias. META y TSLA tienen resultados inminentes, con riesgo de salto en contra. PLTR viene de corregir un 8% en 5 d\u00edas y tiene alertas de valoraci\u00f3n y ventas de Ark. NFLX est\u00e1 en tendencia bajista. QQQ y SPY est\u00e1n d\u00e9biles y se mueven poco."
   },
   "maximos": {
-    "AAPL": 347.3,
     "MSFT": 535.38,
-    "TSLA": 369.4,
-    "META": 706.49
+    "TSLA": 377.38
   },
   "salidas": {
-    "META": "2026-10-19T14:04:51",
+    "META": "2026-10-20T13:33:15",
     "COIN": "2026-10-15T13:32:48",
     "PLTR": "2026-10-16T13:40:58",
     "GOOGL": "2026-10-14T16:21:23",
     "AMZN": "2026-10-14T16:33:30",
-    "MSFT": "2026-10-16T15:23:35"
+    "MSFT": "2026-10-16T15:23:35",
+    "AAPL": "2026-10-20T15:05:55"
   },
   "parciales": {}
 }
