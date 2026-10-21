@@ -6,11 +6,7 @@
 name: Agente diario
 
 on:
-  schedule:
-    # La sesión la arranca cada día una Rutina de Claude (9:31 Nueva York) con el modo bucle-hasta-cierre,
-    # porque el programador de GitHub no es fiable para horarios exactos.
-    - cron: "40 21 * * 1-5"       # pasada nocturna: 21:40 UTC
-    # Nota: GitHub puede retrasar o saltarse alguna ejecución programada si está saturado.
+  # Proyecto en pausa: sin ejecuciones programadas. Solo se ejecuta a mano (botón "Run workflow").
   workflow_dispatch:          # botón "Run workflow" para lanzarlo a mano (también desde el móvil)
     inputs:
       modo:
